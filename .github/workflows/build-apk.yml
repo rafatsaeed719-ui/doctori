@@ -1,0 +1,61 @@
+name: Build Doctori APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android project
+        run: |
+          flutter create --platforms=android --org com.doctori --project-name doctori .
+          rm -rf test
+          python3 tool/patch_android.py
+
+      - name: Check server settings
+        run: |
+          test -f env/doctori.json || { echo "::error::app/env/doctori.json is missing"; exit 1; }
+
+      - name: Install packages
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Build APK
+        run: flutter build apk --release --dart-define-from-file=env/doctori.json
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: doctori-apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Publish release (easy download from phone)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: دكتوري — نسخة ${{ github.run_number }}
+          body: نسخة تجريبية للمرحلة الأولى. نزّل ملف app-release.apk وثبّته على الموبايل.
+          files: app/build/app/outputs/flutter-apk/app-release.apk
