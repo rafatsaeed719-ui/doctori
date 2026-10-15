@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/avatar.dart';
 import '../core/l10n.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
@@ -31,7 +32,7 @@ class MyDoctorsScreen extends StatelessWidget {
                       child: Card(
                         child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          leading: CircleAvatar(child: Text((d['doctor_name'] as String? ?? '?').characters.first)),
+                          leading: UserAvatar(url: d['avatar_url'] as String?, name: d['doctor_name'] as String?, radius: 24),
                           title: Text('${tr('د.', 'Dr.')} ${d['doctor_name'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w700)),
                           subtitle: Text('${trField(d, 'specialty')}\n${tr('المشاركة', 'Sharing')}: ${scopeLabel(d['scope'] as String?)}'),
                           isThreeLine: true,

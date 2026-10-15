@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/avatar.dart';
 import '../core/l10n.dart';
 import '../core/phone.dart';
 import '../core/supa.dart';
@@ -64,7 +65,14 @@ class DoctorRequestsScreen extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(r['patient_name'] ?? '', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                      Row(children: [
+                        UserAvatar(url: r['avatar_url'] as String?, name: r['patient_name'] as String?, radius: 22),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(r['patient_name'] ?? '',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                        ),
+                      ]),
                       const SizedBox(height: 4),
                       Text([
                         genderLabel(r['gender'] as String?),
@@ -158,7 +166,7 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Card(
                   child: ListTile(
-                    leading: CircleAvatar(child: Text((p['patient_name'] as String? ?? '?').characters.first)),
+                    leading: UserAvatar(url: p['avatar_url'] as String?, name: p['patient_name'] as String?, radius: 24),
                     title: Text(p['patient_name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w700)),
                     subtitle: Text([
                       genderLabel(p['gender'] as String?),

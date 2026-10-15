@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../common/map_widgets.dart';
+import '../core/avatar.dart';
+import '../core/backgrounds.dart';
 import '../core/l10n.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
@@ -25,7 +27,7 @@ class DoctorDetailsScreen extends StatelessWidget {
           if (d == null) {
             return EmptyView(icon: Icons.person_off, title: tr('هذا الطبيب غير متاح حالياً', 'This doctor is not available'));
           }
-          return _DoctorBody(d: d);
+          return PatternBackground(look: specialtyLook(d['specialty_en'] as String?), child: _DoctorBody(d: d));
         },
       ),
     );
@@ -53,12 +55,8 @@ class _DoctorBody extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(18),
               child: Column(children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: cs.primaryContainer,
-                  child: Text((d['full_name'] as String? ?? '?').characters.first,
-                      style: TextStyle(fontSize: 32, color: cs.onPrimaryContainer, fontWeight: FontWeight.w700)),
-                ),
+                UserAvatar(url: d['avatar_url'] as String?, name: d['full_name'] as String?, radius: 44,
+                    ring: specialtyLook(d['specialty_en'] as String?).accent),
                 const SizedBox(height: 12),
                 Text('${tr('د.', 'Dr.')} ${d['full_name'] ?? ''}', textAlign: TextAlign.center,
                     style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w800)),

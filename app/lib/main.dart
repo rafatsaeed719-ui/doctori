@@ -3,8 +3,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'auth/auth_gate.dart';
+import 'core/backgrounds.dart';
 import 'core/config.dart';
 import 'core/l10n.dart';
+import 'core/supa.dart';
 import 'core/theme.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -24,14 +26,30 @@ class DoctoriApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Locale>(
       valueListenable: L10n.locale,
-      builder: (context, locale, _) => MaterialApp(
+      builder: (context, locale, _) => ValueListenableBuilder<Map<String, dynamic>>(
+        valueListenable: AppState.ctx,
+        builder: (context, ctx, _) => _app(locale, _accentFor(ctx)),
+      ),
+    );
+  }
+
+  /// Each role gets its own accent: the doctor's comes from their specialty.
+  static Color _accentFor(Map<String, dynamic> ctx) => switch (ctx['role']) {
+        'doctor' => specialtyLook(ctx['specialty_en'] as String?).accent,
+        'admin' => adminLook.accent,
+        'patient' => patientLook.accent,
+        _ => AppTheme.seed,
+      };
+
+  Widget _app(Locale locale, Color accent) {
+    return MaterialApp(
         // Rebuild the whole tree when the language changes so every tr() re-evaluates.
         key: ValueKey(locale.languageCode),
         navigatorKey: navigatorKey,
         title: 'دكتوري',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
+        theme: AppTheme.light(accent),
+        darkTheme: AppTheme.dark(accent),
         themeMode: ThemeMode.system,
         locale: locale,
         supportedLocales: const [Locale('ar'), Locale('en')],
@@ -41,7 +59,6 @@ class DoctoriApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         home: AppConfig.isConfigured ? const AuthGate() : const _NotConfigured(),
-      ),
     );
   }
 }

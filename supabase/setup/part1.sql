@@ -3,6 +3,7 @@
 -- آمن للتشغيل أكتر من مرة: بيكمّل الناقص بس.
 -- =====================================================================
 drop trigger if exists on_auth_user_created on auth.users;
+drop function if exists public.search_doctors(text, int, int, int, double precision, double precision, boolean, numeric, smallint, int, int);
 
 -- =====================================================================
 -- دكتوري — المرحلة الأولى: الحسابات، الأطباء، العيادات، البحث، طلبات الانضمام

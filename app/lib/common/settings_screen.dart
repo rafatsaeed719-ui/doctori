@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/avatar.dart';
 import '../core/l10n.dart';
 import '../core/phone.dart';
 import '../core/supa.dart';
@@ -47,8 +48,25 @@ class _Body extends StatelessWidget {
       Card(
         child: ListTile(
           contentPadding: const EdgeInsets.all(14),
-          leading: CircleAvatar(radius: 26, child: Text((profile['full_name'] as String? ?? '?').characters.first,
-              style: const TextStyle(fontSize: 22))),
+          leading: GestureDetector(
+            onTap: () async {
+              if (await changeMyAvatar(context)) reload();
+            },
+            child: Stack(clipBehavior: Clip.none, children: [
+              ValueListenableBuilder<Map<String, dynamic>>(
+                valueListenable: AppState.ctx,
+                builder: (context, ctx, _) => UserAvatar(
+                    url: ctx['avatar_url'] as String? ?? profile['avatar_url'] as String?,
+                    name: profile['full_name'] as String?, radius: 28),
+              ),
+              PositionedDirectional(
+                bottom: -2,
+                end: -2,
+                child: CircleAvatar(radius: 11, backgroundColor: cs.primary,
+                    child: const Icon(Icons.camera_alt, size: 12, color: Colors.white)),
+              ),
+            ]),
+          ),
           title: Text(profile['full_name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w700)),
           subtitle: Text('${isPhoneLogin(profile['email'] as String?) ? displayPhone(profile['phone'] as String?) : (profile['email'] ?? '')}\n$_role'),
           isThreeLine: true,

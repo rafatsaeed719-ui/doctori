@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static const seed = Color(0xFF0E7C86);
 
-  static ThemeData light() => _build(Brightness.light);
-  static ThemeData dark() => _build(Brightness.dark);
+  static ThemeData light([Color accent = seed]) => _build(Brightness.light, accent);
+  static ThemeData dark([Color accent = seed]) => _build(Brightness.dark, accent);
 
-  static ThemeData _build(Brightness b) {
-    final scheme = ColorScheme.fromSeed(seedColor: seed, brightness: b);
+  static ThemeData _build(Brightness b, Color accent) {
+    final scheme = ColorScheme.fromSeed(seedColor: accent, brightness: b);
     final radius = BorderRadius.circular(14);
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: b == Brightness.light ? const Color(0xFFF5F8F9) : scheme.surface,
+      scaffoldBackgroundColor: b == Brightness.light ? Color.lerp(accent, Colors.white, 0.95) : scheme.surface,
       appBarTheme: AppBarTheme(
         centerTitle: true,
         backgroundColor: b == Brightness.light ? Colors.white : scheme.surface,

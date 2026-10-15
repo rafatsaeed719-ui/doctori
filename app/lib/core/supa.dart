@@ -22,7 +22,14 @@ Future<List<Map<String, dynamic>>> rpcList(String fn, [Map<String, dynamic>? par
 /// Shared app-wide state (role context and the admin-editable app name).
 class AppState {
   static final appName = ValueNotifier<String>('دكتوري');
-  static Map<String, dynamic> context = const {};
+
+  /// The signed-in user's context (role, name, avatar, specialty…). Listen to rebuild headers.
+  static final ctx = ValueNotifier<Map<String, dynamic>>(const {});
+  static Map<String, dynamic> get context => ctx.value;
+  static set context(Map<String, dynamic> v) => ctx.value = v;
+
+  /// Merge a few fields (e.g. a new avatar_url) and notify listeners.
+  static void updateContext(Map<String, dynamic> changes) => ctx.value = {...ctx.value, ...changes};
 
   static Future<void> loadAppName() async {
     try {
@@ -90,3 +97,11 @@ String errorDetails(Object e) => switch (e) {
       StorageException s => 'storage ${s.statusCode ?? ''} ${s.message}'.trim(),
       _ => e.toString(),
     };
+
+/// Re-reads the signed-in user's context (e.g. after changing specialty or photo).
+Future<void> refreshMyContext() async {
+  try {
+    final r = await rpc('get_my_context');
+    if (r is Map) AppState.context = Map<String, dynamic>.from(r);
+  } catch (_) {/* keep the old context */}
+}

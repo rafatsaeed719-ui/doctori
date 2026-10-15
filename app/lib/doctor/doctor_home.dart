@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../common/settings_screen.dart';
+import '../core/avatar.dart';
+import '../core/backgrounds.dart';
 import '../core/l10n.dart';
-import '../core/lookups.dart';
+import '../core/look3d.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
+import 'add_patient_screen.dart';
 import 'clinics_screen.dart';
 import 'doctor_profile_screen.dart';
 import 'patients_requests_screens.dart';
@@ -20,33 +23,41 @@ class DoctorHome extends StatefulWidget {
 class _DoctorHomeState extends State<DoctorHome> {
   int _tab = 0;
 
+  void _go(int i) => setState(() => _tab = i);
+
   @override
   Widget build(BuildContext context) {
-    final pages = [
-      _Dashboard(goTo: (i) => setState(() => _tab = i)),
-      const DoctorRequestsScreen(),
-      const DoctorPatientsScreen(),
-      const ClinicsScreen(),
-      const SettingsScreen(),
-    ];
-    return Scaffold(
-      body: pages[_tab],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: [
-          NavigationDestination(icon: const Icon(Icons.dashboard_outlined), selectedIcon: const Icon(Icons.dashboard),
-              label: tr('الرئيسية', 'Home')),
-          NavigationDestination(icon: const Icon(Icons.inbox_outlined), selectedIcon: const Icon(Icons.inbox),
-              label: tr('الطلبات', 'Requests')),
-          NavigationDestination(icon: const Icon(Icons.people_outline), selectedIcon: const Icon(Icons.people),
-              label: tr('مرضاي', 'Patients')),
-          NavigationDestination(icon: const Icon(Icons.local_hospital_outlined), selectedIcon: const Icon(Icons.local_hospital),
-              label: tr('عياداتي', 'Clinics')),
-          NavigationDestination(icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person),
-              label: tr('حسابي', 'Account')),
-        ],
-      ),
+    return ValueListenableBuilder<Map<String, dynamic>>(
+      valueListenable: AppState.ctx,
+      builder: (context, ctx, _) {
+        final accent = specialtyLook(ctx['specialty_en'] as String?).accent;
+        final pages = [
+          _Dashboard(goTo: _go),
+          const DoctorRequestsScreen(),
+          const DoctorPatientsScreen(),
+          const ClinicsScreen(),
+          const SettingsScreen(),
+        ];
+        return Scaffold(
+          body: pages[_tab],
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _tab,
+            onDestinationSelected: _go,
+            destinations: [
+              NavigationDestination(icon: const Icon(Icons.dashboard_outlined),
+                  selectedIcon: navIcon3D(Icons.dashboard_rounded, accent), label: tr('الرئيسية', 'Home')),
+              NavigationDestination(icon: const Icon(Icons.inbox_outlined),
+                  selectedIcon: navIcon3D(Icons.inbox_rounded, Tone.orange), label: tr('الطلبات', 'Requests')),
+              NavigationDestination(icon: const Icon(Icons.people_outline),
+                  selectedIcon: navIcon3D(Icons.people_rounded, Tone.teal), label: tr('مرضاي', 'Patients')),
+              NavigationDestination(icon: const Icon(Icons.local_hospital_outlined),
+                  selectedIcon: navIcon3D(Icons.local_hospital_rounded, Tone.blue), label: tr('عياداتي', 'Clinics')),
+              NavigationDestination(icon: const Icon(Icons.person_outline),
+                  selectedIcon: navIcon3D(Icons.person_rounded, Tone.pink), label: tr('حسابي', 'Account')),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -73,141 +84,174 @@ class _Dashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<Map<String, dynamic>>(
+      valueListenable: AppState.ctx,
+      builder: (context, ctx, _) {
+        final look = specialtyLook(ctx['specialty_en'] as String?);
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          body: PatternBackground(
+            look: look,
+            child: SafeArea(
+              child: FutureView<Map<String, dynamic>>(
+                load: _load,
+                builder: (context, data, reload) => _body(context, ctx, look, data, reload),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _body(BuildContext context, Map<String, dynamic> ctx, SpecialtyLook look, Map<String, dynamic> data,
+      Future<void> Function() reload) {
+    final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
-    return Scaffold(
-      appBar: AppBar(title: Text(AppState.context['full_name'] != null
-          ? '${tr('د.', 'Dr.')} ${AppState.context['full_name']}'
-          : tr('لوحة الطبيب', 'Doctor dashboard'))),
-      body: FutureView<Map<String, dynamic>>(
-        load: _load,
-        builder: (context, data, reload) {
-          final doc = Map<String, dynamic>.from(data['doctor'] as Map);
-          final status = doc['status'] as String;
-          final profileDone = doc['specialty_id'] != null && (doc['license_number'] as String?)?.isNotEmpty == true;
-          final clinics = data['clinics'] as int;
-          final submitted = data['submitted'] as bool;
-          return RefreshList(onRefresh: reload, children: [
-            _statusBanner(context, status, data['awaiting_review'] as bool),
-            if (status != 'verified') ...[
-              SectionTitle(tr('خطوات تفعيل حسابك', 'Steps to activate your account')),
-              _step(context, 1, tr('أكمل بياناتك المهنية (التخصص ورقم الترخيص)', 'Complete your professional info (specialty, licence)'),
-                  profileDone, () async {
-                await Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorProfileScreen()));
-                reload();
-              }),
-              _step(context, 2, tr('أضف عيادة واحدة على الأقل وحدد موقعها', 'Add at least one clinic with its location'),
-                  clinics > 0, () => goTo(3)),
-              _step(context, 3, tr('ارفع مستندات الترخيص للمراجعة', 'Upload licence documents for review'),
-                  submitted, () async {
-                await Navigator.push(context, MaterialPageRoute(builder: (_) => const VerificationScreen()));
-                reload();
-              }),
-            ],
-            SectionTitle(tr('نظرة سريعة', 'Overview')),
-            Row(children: [
-              Expanded(child: _stat(context, Icons.inbox, '${data['requests']}', tr('طلبات جديدة', 'New requests'), () => goTo(1))),
-              const SizedBox(width: 12),
-              Expanded(child: _stat(context, Icons.people, '${data['patients']}', tr('مرضى', 'Patients'), () => goTo(2))),
-              const SizedBox(width: 12),
-              Expanded(child: _stat(context, Icons.local_hospital, '$clinics', tr('عيادات', 'Clinics'), () => goTo(3))),
+    final doc = Map<String, dynamic>.from(data['doctor'] as Map);
+    final status = doc['status'] as String;
+    final verified = status == 'verified';
+    final profileDone = doc['specialty_id'] != null && (doc['license_number'] as String?)?.isNotEmpty == true;
+    final clinics = data['clinics'] as int;
+    final submitted = data['submitted'] as bool;
+    final specialty = L10n.isAr ? ctx['specialty_ar'] : (ctx['specialty_en'] ?? ctx['specialty_ar']);
+
+    Future<void> openProfile() async {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorProfileScreen()));
+      await refreshMyContext();
+      reload();
+    }
+
+    Future<void> openVerification() async {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => const VerificationScreen()));
+      reload();
+    }
+
+    return RefreshList(
+      onRefresh: reload,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      children: [
+        GlassCard(
+          padding: const EdgeInsets.all(18),
+          child: Row(children: [
+            GestureDetector(
+              onTap: () => changeMyAvatar(context),
+              child: Stack(clipBehavior: Clip.none, children: [
+                UserAvatar(url: ctx['avatar_url'] as String?, name: ctx['full_name'] as String?, radius: 34, ring: look.accent),
+                PositionedDirectional(
+                  bottom: -2,
+                  end: -2,
+                  child: CircleAvatar(
+                    radius: 13,
+                    backgroundColor: look.accent,
+                    child: const Icon(Icons.camera_alt, size: 14, color: Colors.white),
+                  ),
+                ),
+              ]),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(tr('أهلاً دكتور 👋', 'Welcome, doctor 👋'), style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+                Text('${tr('د.', 'Dr.')} ${ctx['full_name'] ?? ''}',
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                const SizedBox(height: 6),
+                Wrap(spacing: 6, runSpacing: 6, children: [
+                  if (specialty != null)
+                    StatusChip('${look.emojis.first} $specialty', color: darken(look.accent, 0.1)),
+                  StatusChip(
+                    verified ? tr('موثّق ✓', 'Verified ✓') : tr('بانتظار التوثيق', 'Pending'),
+                    color: verified ? Colors.green.shade700 : Colors.orange.shade800,
+                  ),
+                ]),
+              ]),
+            ),
+          ]),
+        ),
+        const SizedBox(height: 14),
+        if (!verified) ...[
+          _statusBanner(context, status, data['awaiting_review'] as bool),
+          const SizedBox(height: 10),
+          GlassCard(
+            padding: const EdgeInsets.all(12),
+            child: Column(children: [
+              _step(context, 1, tr('أكمل بياناتك المهنية (التخصص ورقم الترخيص)', 'Complete your professional info'),
+                  profileDone, openProfile),
+              _step(context, 2, tr('أضف عيادة وحدد موقعها', 'Add a clinic with its location'), clinics > 0, () => goTo(3)),
+              _step(context, 3, tr('ارفع مستندات الترخيص', 'Upload licence documents'), submitted, openVerification),
             ]),
-            const SizedBox(height: 16),
-            Card(
-              child: SwitchListTile(
-                value: doc['accepting_new'] == true,
-                title: Text(tr('أستقبل مرضى جدد', 'Accepting new patients')),
-                subtitle: Text(tr('لو قفلتها، المرضى يقدروا يشوفوك لكن مش هيقدروا يبعتوا طلب انضمام.',
-                    'When off, patients can see you but cannot send join requests.')),
-                onChanged: (v) async {
-                  final ok = await runBusy(context, () async {
-                    await supa.from('doctors').update({'accepting_new': v}).eq('id', myId);
-                  });
-                  if (ok) reload();
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              child: ListTile(
-                leading: Icon(Icons.badge_outlined, color: cs.primary),
-                title: Text(tr('بياناتي المهنية', 'Professional profile')),
-                subtitle: Text(Lookups.specialtyName(doc['specialty_id'] as int?)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorProfileScreen()));
-                  reload();
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              child: ListTile(
-                leading: Icon(Icons.verified_outlined, color: cs.primary),
-                title: Text(tr('مستندات التوثيق', 'Verification documents')),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (_) => const VerificationScreen()));
-                  reload();
-                },
-              ),
-            ),
-          ]);
-        },
-      ),
+          ),
+          const SizedBox(height: 14),
+        ],
+        TileGrid(children: [
+          Tile3D(icon: Icons.inbox_rounded, color: Tone.orange, label: tr('طلبات الانضمام', 'Join requests'),
+              badge: data['requests'] as int, subtitle: tr('${data['requests']} جديد', '${data['requests']} new'),
+              onTap: () => goTo(1)),
+          Tile3D(icon: Icons.people_alt_rounded, color: Tone.teal, label: tr('مرضاي', 'My patients'),
+              subtitle: tr('${data['patients']} مريض', '${data['patients']} patients'), onTap: () => goTo(2)),
+          Tile3D(icon: Icons.person_add_alt_1_rounded, color: Tone.green, label: tr('إضافة مريض', 'Add patient'),
+              subtitle: tr('برقم الموبايل', 'By mobile number'),
+              onTap: () async {
+                if (!verified) {
+                  showMessage(context, tr('هتقدر تضيف مرضى بعد توثيق حسابك.', 'Available after verification.'), error: true);
+                  return;
+                }
+                final added = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AddPatientScreen()));
+                if (added == true) reload();
+              }),
+          Tile3D(icon: Icons.local_hospital_rounded, color: Tone.blue, label: tr('عياداتي', 'My clinics'),
+              subtitle: tr('$clinics عيادة', '$clinics clinics'), onTap: () => goTo(3)),
+          Tile3D(icon: Icons.badge_rounded, color: look.accent, label: tr('بياناتي المهنية', 'Professional info'),
+              subtitle: tr('التخصص والخبرة', 'Specialty & experience'), onTap: openProfile),
+          Tile3D(icon: Icons.verified_rounded, color: Tone.purple, label: tr('التوثيق', 'Verification'),
+              subtitle: verified ? tr('موثّق', 'Verified') : tr('المستندات', 'Documents'), onTap: openVerification),
+        ]),
+        const SizedBox(height: 14),
+        GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          child: SwitchListTile(
+            value: doc['accepting_new'] == true,
+            secondary: Icon3D(Icons.how_to_reg_rounded, color: Tone.green, size: 40),
+            title: Text(tr('أستقبل مرضى جدد', 'Accepting new patients'), style: const TextStyle(fontWeight: FontWeight.w700)),
+            subtitle: Text(tr('لو قفلتها، المرضى يشوفوك بس ما يقدروش يبعتوا طلب.',
+                'When off, patients see you but cannot send requests.')),
+            onChanged: (v) async {
+              final ok = await runBusy(context, () async {
+                await supa.from('doctors').update({'accepting_new': v}).eq('id', myId);
+              });
+              if (ok) reload();
+            },
+          ),
+        ),
+      ],
     );
   }
 
   Widget _statusBanner(BuildContext context, String status, bool awaiting) {
     final cs = Theme.of(context).colorScheme;
     return switch (status) {
-      'verified' => InfoBanner(icon: Icons.verified, color: Colors.green.shade700,
-          text: tr('حسابك موثّق ويظهر للمرضى في البحث.', 'Your account is verified and visible to patients.')),
       'rejected' => InfoBanner(icon: Icons.error_outline, color: cs.error,
-          text: tr('لم تتم الموافقة على التوثيق. راجع ملاحظات الإدارة في شاشة المستندات وأعد الإرسال.',
-              'Verification was declined. Check the admin notes in Documents and resubmit.')),
+          text: tr('لم تتم الموافقة على التوثيق. راجع ملاحظات الإدارة في «التوثيق» وأعد الإرسال.',
+              'Verification was declined. Check the admin notes and resubmit.')),
       'suspended' => InfoBanner(icon: Icons.block, color: cs.error,
-          text: tr('حسابك المهني معلّق حالياً. تواصل مع إدارة المنصة.', 'Your professional account is suspended. Contact the platform.')),
+          text: tr('حسابك المهني معلّق حالياً. تواصل مع إدارة المنصة.', 'Your professional account is suspended.')),
       _ => InfoBanner(icon: Icons.hourglass_top, color: Colors.orange.shade800,
           text: awaiting
-              ? tr('مستنداتك قيد المراجعة. هيظهر حسابك للمرضى بعد التوثيق.', 'Your documents are under review. You will appear to patients after verification.')
-              : tr('حسابك لا يظهر للمرضى بعد. أكمل الخطوات بالأسفل.', 'You are not visible to patients yet. Complete the steps below.')),
+              ? tr('مستنداتك قيد المراجعة. هتظهر للمرضى بعد التوثيق.', 'Your documents are under review.')
+              : tr('حسابك لا يظهر للمرضى بعد. أكمل الخطوات دي:', 'You are not visible yet. Complete these steps:')),
     };
   }
 
   Widget _step(BuildContext context, int n, String text, bool done, VoidCallback onTap) {
-    final cs = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Card(
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: done ? Colors.green.shade700 : cs.primaryContainer,
-            child: done ? const Icon(Icons.check, color: Colors.white) : Text('$n'),
-          ),
-          title: Text(text),
-          trailing: done ? null : const Icon(Icons.chevron_right),
-          onTap: onTap,
-        ),
-      ),
-    );
-  }
-
-  Widget _stat(BuildContext context, IconData icon, String value, String label, VoidCallback onTap) {
-    final cs = Theme.of(context).colorScheme;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          child: Column(children: [
-            Icon(icon, color: cs.primary),
-            const SizedBox(height: 6),
-            Text(value, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
-            Text(label, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
-          ]),
-        ),
-      ),
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 6),
+      leading: done
+          ? const Icon3D(Icons.check_rounded, color: Tone.green, size: 36)
+          : Icon3D(null, color: Tone.amber, size: 36, emoji: '$n'),
+      title: Text(text, style: TextStyle(decoration: done ? TextDecoration.lineThrough : null)),
+      trailing: done ? null : const Icon(Icons.chevron_right),
+      onTap: onTap,
     );
   }
 }

@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../common/settings_screen.dart';
+import '../core/avatar.dart';
+import '../core/backgrounds.dart';
 import '../core/l10n.dart';
+import '../core/look3d.dart';
+import '../core/supa.dart';
+import '../core/widgets.dart';
 import 'my_doctors_screen.dart';
 import 'my_requests_screen.dart';
 import 'search_screen.dart';
@@ -15,9 +21,13 @@ class PatientHome extends StatefulWidget {
 class _PatientHomeState extends State<PatientHome> {
   int _tab = 0;
 
+  void _go(int i) => setState(() => _tab = i);
+
   @override
   Widget build(BuildContext context) {
+    final accent = patientLook.accent;
     final pages = [
+      _PatientDashboard(goTo: _go),
       const SearchScreen(),
       const MyDoctorsScreen(),
       const MyRequestsScreen(),
@@ -27,16 +37,162 @@ class _PatientHomeState extends State<PatientHome> {
       body: pages[_tab],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
+        onDestinationSelected: _go,
         destinations: [
-          NavigationDestination(icon: const Icon(Icons.search), label: tr('البحث', 'Search')),
+          NavigationDestination(icon: const Icon(Icons.home_outlined), selectedIcon: navIcon3D(Icons.home_rounded, accent),
+              label: tr('الرئيسية', 'Home')),
+          NavigationDestination(icon: const Icon(Icons.search), selectedIcon: navIcon3D(Icons.search, Tone.blue),
+              label: tr('البحث', 'Search')),
           NavigationDestination(icon: const Icon(Icons.medical_services_outlined),
-              selectedIcon: const Icon(Icons.medical_services), label: tr('أطبائي', 'My doctors')),
-          NavigationDestination(icon: const Icon(Icons.outbox_outlined),
-              selectedIcon: const Icon(Icons.outbox), label: tr('طلباتي', 'Requests')),
-          NavigationDestination(icon: const Icon(Icons.person_outline),
-              selectedIcon: const Icon(Icons.person), label: tr('حسابي', 'Account')),
+              selectedIcon: navIcon3D(Icons.medical_services, Tone.teal), label: tr('أطبائي', 'Doctors')),
+          NavigationDestination(icon: const Icon(Icons.outbox_outlined), selectedIcon: navIcon3D(Icons.outbox, Tone.orange),
+              label: tr('طلباتي', 'Requests')),
+          NavigationDestination(icon: const Icon(Icons.person_outline), selectedIcon: navIcon3D(Icons.person, Tone.pink),
+              label: tr('حسابي', 'Account')),
         ],
+      ),
+    );
+  }
+}
+
+const _tipsAr = [
+  'اشرب 8 أكواب مياه على مدار اليوم، جسمك هيشكرك 💧',
+  'مشي 20 دقيقة يومياً بيفرق جداً في صحة القلب والمزاج 🚶',
+  'النوم الكويس من 7 لـ 8 ساعات أهم علاج مجاني 😴',
+  'خد أدويتك في مواعيدها، وما تغيّرش الجرعة من غير ما تسأل دكتورك 💊',
+  'نفَس عميق 5 مرات بيهدّي الأعصاب في دقيقة 🌿',
+  'قلّل الملح والسكر، وزوّد الخضار والفاكهة في يومك 🥗',
+  'اسأل دكتورك عن أي حاجة مش واضحة، مفيش سؤال صغير 🩺',
+  'ابتسم! الضحك بيقوّي المناعة ويحسّن المزاج 😊',
+  'افصل عن الموبايل ساعة قبل النوم عشان نومك يبقى أهدى 🌙',
+  'شوية شمس الصبح مفيدين لفيتامين د وللمزاج ☀️',
+];
+const _tipsEn = [
+  'Drink 8 glasses of water through the day 💧',
+  'A 20-minute daily walk helps your heart and mood 🚶',
+  '7–8 hours of good sleep is the best free medicine 😴',
+  'Take your medicines on time and never change a dose without asking 💊',
+  'Five deep breaths calm your nerves in a minute 🌿',
+  'Less salt and sugar, more vegetables and fruit 🥗',
+  'Ask your doctor anything that is unclear — no question is too small 🩺',
+  'Smile! Laughter supports immunity and mood 😊',
+  'Put the phone away an hour before bed for calmer sleep 🌙',
+  'A little morning sun helps vitamin D and mood ☀️',
+];
+
+class _PatientDashboard extends StatelessWidget {
+  const _PatientDashboard({required this.goTo});
+  final void Function(int) goTo;
+
+  Future<(int, int)> _counts() async {
+    final docs = await rpcList('patient_my_doctors');
+    final reqs = await rpcList('patient_my_requests');
+    return (docs.length, reqs.where((r) => r['status'] == 'pending').length);
+  }
+
+  String _greeting() {
+    final h = DateTime.now().hour;
+    if (h >= 5 && h < 12) return tr('صباح الخير', 'Good morning');
+    if (h >= 12 && h < 17) return tr('نهارك سعيد', 'Good afternoon');
+    return tr('مساء الخير', 'Good evening');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final day = DateTime.now().difference(DateTime(DateTime.now().year)).inDays;
+    final tip = (L10n.isAr ? _tipsAr : _tipsEn)[day % _tipsAr.length];
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: PatternBackground(
+        look: patientLook,
+        calm: true,
+        child: SafeArea(
+          child: FutureView<(int, int)>(
+            load: _counts,
+            builder: (context, counts, reload) => RefreshList(
+              onRefresh: reload,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              children: [
+                ValueListenableBuilder<Map<String, dynamic>>(
+                  valueListenable: AppState.ctx,
+                  builder: (context, ctx, _) {
+                    final name = (ctx['full_name'] as String? ?? '').split(' ').first;
+                    return GlassCard(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Row(children: [
+                          GestureDetector(
+                            onTap: () => changeMyAvatar(context),
+                            child: UserAvatar(url: ctx['avatar_url'] as String?, name: ctx['full_name'] as String?,
+                                radius: 30, ring: patientLook.accent),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text('${_greeting()} 👋', style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+                              Text(name, style: tt.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
+                            ]),
+                          ),
+                          ValueListenableBuilder<String>(
+                            valueListenable: AppState.appName,
+                            builder: (_, n, __) => Image.asset('assets/logo.png', width: 40, height: 40, semanticLabel: n),
+                          ),
+                        ]),
+                        const SizedBox(height: 14),
+                        Text(
+                          tr('أهلاً بيك في مساحتك الآمنة 💙\nهنا تتابع صحتك مع أطبائك بهدوء وخصوصية، وكل خطوة في علاجك محفوظة.',
+                              'Welcome to your safe space 💙\nFollow your health with your doctors calmly and privately; every step is kept.'),
+                          style: tt.bodyLarge?.copyWith(height: 1.6),
+                        ),
+                      ]),
+                    );
+                  },
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [lighten(Tone.green, 0.75), lighten(Tone.sky, 0.78)]),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(children: [
+                    const Icon3D(Icons.lightbulb, color: Tone.amber, size: 42),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(tr('نصيحة اليوم', 'Tip of the day'),
+                            style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1D4D3A))),
+                        const SizedBox(height: 2),
+                        Text(tip, style: const TextStyle(height: 1.5, color: Color(0xFF1D3B4A))),
+                      ]),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 18),
+                TileGrid(children: [
+                  Tile3D(icon: Icons.search_rounded, color: Tone.blue, label: tr('ابحث عن طبيب', 'Find a doctor'),
+                      subtitle: tr('بالتخصص أو الأقرب ليك', 'By specialty or nearby'), onTap: () => goTo(1)),
+                  Tile3D(icon: Icons.medical_services_rounded, color: Tone.teal, label: tr('أطبائي', 'My doctors'),
+                      subtitle: tr('${counts.$1} طبيب', '${counts.$1} doctors'), onTap: () => goTo(2)),
+                  Tile3D(icon: Icons.outbox_rounded, color: Tone.orange, label: tr('طلباتي', 'My requests'),
+                      badge: counts.$2, subtitle: tr('${counts.$2} بانتظار الرد', '${counts.$2} pending'),
+                      onTap: () => goTo(3)),
+                  Tile3D(icon: Icons.folder_shared_rounded, color: Tone.purple, label: tr('ملفي الطبي', 'My medical file'),
+                      subtitle: tr('قريباً', 'Coming soon'),
+                      onTap: () => showMessage(context, tr('الملف الطبي والمرفقات جايين في التحديث الجاي.',
+                          'Medical file and attachments arrive in the next update.'))),
+                  Tile3D(icon: Icons.person_rounded, color: Tone.pink, label: tr('حسابي', 'My account'),
+                      subtitle: tr('الصورة والبيانات', 'Photo & details'), onTap: () => goTo(4)),
+                  Tile3D(icon: Icons.emergency_rounded, color: Tone.red, label: tr('طوارئ 123', 'Emergency 123'),
+                      subtitle: tr('اتصال بالإسعاف', 'Call ambulance'),
+                      onTap: () => launchUrl(Uri(scheme: 'tel', path: '123'))),
+                ]),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

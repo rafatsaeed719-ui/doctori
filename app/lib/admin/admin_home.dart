@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../common/settings_screen.dart';
+import '../core/avatar.dart';
+import '../core/backgrounds.dart';
 import '../core/l10n.dart';
+import '../core/look3d.dart';
 import '../core/lookups.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
@@ -18,10 +21,12 @@ class AdminHome extends StatefulWidget {
 class _AdminHomeState extends State<AdminHome> {
   int _tab = 0;
 
+  void _go(int i) => setState(() => _tab = i);
+
   @override
   Widget build(BuildContext context) {
     final pages = [
-      _Stats(goToDoctors: () => setState(() => _tab = 2)),
+      _Stats(goTo: _go),
       const AdminUsersScreen(),
       const _Doctors(),
       const _PlatformSettings(),
@@ -31,18 +36,18 @@ class _AdminHomeState extends State<AdminHome> {
       body: pages[_tab],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
+        onDestinationSelected: _go,
         destinations: [
-          NavigationDestination(icon: const Icon(Icons.insights_outlined), selectedIcon: const Icon(Icons.insights),
-              label: tr('الإحصائيات', 'Stats')),
-          NavigationDestination(icon: const Icon(Icons.people_outline), selectedIcon: const Icon(Icons.people),
-              label: tr('المستخدمين', 'Users')),
-          NavigationDestination(icon: const Icon(Icons.verified_user_outlined), selectedIcon: const Icon(Icons.verified_user),
-              label: tr('التوثيق', 'Verify')),
-          NavigationDestination(icon: const Icon(Icons.settings_outlined), selectedIcon: const Icon(Icons.settings),
-              label: tr('الإعدادات', 'Settings')),
-          NavigationDestination(icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person),
-              label: tr('حسابي', 'Account')),
+          NavigationDestination(icon: const Icon(Icons.space_dashboard_outlined),
+              selectedIcon: navIcon3D(Icons.space_dashboard_rounded, Tone.indigo), label: tr('اللوحة', 'Dashboard')),
+          NavigationDestination(icon: const Icon(Icons.people_outline),
+              selectedIcon: navIcon3D(Icons.people_rounded, Tone.blue), label: tr('المستخدمين', 'Users')),
+          NavigationDestination(icon: const Icon(Icons.verified_user_outlined),
+              selectedIcon: navIcon3D(Icons.verified_user_rounded, Tone.green), label: tr('التوثيق', 'Verify')),
+          NavigationDestination(icon: const Icon(Icons.settings_outlined),
+              selectedIcon: navIcon3D(Icons.settings_rounded, Tone.purple), label: tr('الإعدادات', 'Settings')),
+          NavigationDestination(icon: const Icon(Icons.person_outline),
+              selectedIcon: navIcon3D(Icons.person_rounded, Tone.pink), label: tr('حسابي', 'Account')),
         ],
       ),
     );
@@ -50,50 +55,120 @@ class _AdminHomeState extends State<AdminHome> {
 }
 
 class _Stats extends StatelessWidget {
-  const _Stats({required this.goToDoctors});
-  final VoidCallback goToDoctors;
+  const _Stats({required this.goTo});
+  final void Function(int) goTo;
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(title: Text(tr('لوحة الإدارة', 'Admin dashboard'))),
-      body: FutureView<Map<String, dynamic>>(
-        load: () async => Map<String, dynamic>.from(await rpc('admin_stats') as Map),
-        builder: (context, s, reload) {
-          Widget tile(IconData i, String label, Object? v, {VoidCallback? onTap, Color? color}) => Card(
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: onTap,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Icon(i, color: color ?? Theme.of(context).colorScheme.primary),
-                      const SizedBox(height: 8),
-                      Text('${v ?? 0}', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
-                      Text(label),
-                    ]),
+      backgroundColor: Colors.transparent,
+      body: PatternBackground(
+        look: adminLook,
+        child: SafeArea(
+          child: FutureView<Map<String, dynamic>>(
+            load: () async => Map<String, dynamic>.from(await rpc('admin_stats') as Map),
+            builder: (context, s, reload) {
+              Widget stat(IconData i, Color c, String label, Object? v, {VoidCallback? onTap}) => GestureDetector(
+                    onTap: onTap,
+                    child: GlassCard(
+                      padding: const EdgeInsets.all(14),
+                      child: Row(children: [
+                        Icon3D(i, color: c, size: 46),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text('${v ?? 0}',
+                                style: tt.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: darken(c, 0.15))),
+                            Text(label, maxLines: 2, style: const TextStyle(fontSize: 12.5, height: 1.3)),
+                          ]),
+                        ),
+                      ]),
+                    ),
+                  );
+              return RefreshList(
+                onRefresh: reload,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(26),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [lighten(Tone.indigo, 0.1), darken(Tone.indigo, 0.25)],
+                      ),
+                      boxShadow: [BoxShadow(color: Tone.indigo.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 10))],
+                    ),
+                    child: ValueListenableBuilder<Map<String, dynamic>>(
+                      valueListenable: AppState.ctx,
+                      builder: (context, ctx, _) => Row(children: [
+                        GestureDetector(
+                          onTap: () => changeMyAvatar(context),
+                          child: UserAvatar(url: ctx['avatar_url'] as String?, name: ctx['full_name'] as String?,
+                              radius: 30, ring: Colors.white),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text(tr('لوحة الإدارة', 'Admin dashboard'),
+                                style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+                            Text(ctx['full_name'] as String? ?? '',
+                                maxLines: 1, overflow: TextOverflow.ellipsis,
+                                style: tt.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+                            ValueListenableBuilder<String>(
+                              valueListenable: AppState.appName,
+                              builder: (_, n, __) => Text('${tr('منصة', 'Platform')} $n',
+                                  style: const TextStyle(color: Colors.white70)),
+                            ),
+                          ]),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+                          child: Image.asset('assets/logo.png', width: 38, height: 38),
+                        ),
+                      ]),
+                    ),
                   ),
-                ),
+                  SectionTitle(tr('نظرة عامة', 'Overview')),
+                  LayoutBuilder(builder: (context, c) {
+                    final w = (c.maxWidth - 12) / 2;
+                    return Wrap(spacing: 12, runSpacing: 12, children: [
+                      SizedBox(width: w, child: stat(Icons.hourglass_top_rounded, Tone.orange,
+                          tr('أطباء بانتظار التوثيق', 'Awaiting review'), s['doctors_pending'], onTap: () => goTo(2))),
+                      SizedBox(width: w, child: stat(Icons.verified_rounded, Tone.green,
+                          tr('أطباء موثّقون', 'Verified doctors'), s['doctors_verified'], onTap: () => goTo(1))),
+                      SizedBox(width: w, child: stat(Icons.people_alt_rounded, Tone.blue,
+                          tr('المرضى', 'Patients'), s['patients'], onTap: () => goTo(1))),
+                      SizedBox(width: w, child: stat(Icons.link_rounded, Tone.teal,
+                          tr('متابعات نشطة', 'Active care links'), s['active_links'])),
+                      SizedBox(width: w, child: stat(Icons.inbox_rounded, Tone.pink,
+                          tr('طلبات انضمام معلقة', 'Pending requests'), s['pending_requests'])),
+                    ]);
+                  }),
+                  SectionTitle(tr('إجراءات سريعة', 'Quick actions')),
+                  TileGrid(children: [
+                    Tile3D(icon: Icons.person_add_alt_1_rounded, color: Tone.green, label: tr('إضافة حساب', 'Add account'),
+                        subtitle: tr('دكتور أو مريض أو مدير', 'Doctor, patient or admin'),
+                        onTap: () async {
+                          final added = await Navigator.push<bool>(
+                              context, MaterialPageRoute(builder: (_) => const AdminCreateUserScreen()));
+                          if (added == true) reload();
+                        }),
+                    Tile3D(icon: Icons.people_rounded, color: Tone.blue, label: tr('المستخدمين', 'Users'),
+                        subtitle: tr('بحث وتعديل وحذف', 'Search, edit, delete'), onTap: () => goTo(1)),
+                    Tile3D(icon: Icons.verified_user_rounded, color: Tone.orange, label: tr('توثيق الأطباء', 'Verify doctors'),
+                        badge: (s['doctors_pending'] as num?)?.toInt(), onTap: () => goTo(2)),
+                    Tile3D(icon: Icons.category_rounded, color: Tone.purple, label: tr('التخصصات والإعدادات', 'Specialties & settings'),
+                        onTap: () => goTo(3)),
+                  ]),
+                ],
               );
-          return RefreshList(onRefresh: reload, children: [
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.3,
-              children: [
-                tile(Icons.hourglass_top, tr('أطباء بانتظار التوثيق', 'Doctors awaiting review'), s['doctors_pending'],
-                    onTap: goToDoctors, color: Colors.orange.shade800),
-                tile(Icons.verified, tr('أطباء موثّقون', 'Verified doctors'), s['doctors_verified'], color: Colors.green.shade700),
-                tile(Icons.people, tr('المرضى', 'Patients'), s['patients']),
-                tile(Icons.link, tr('متابعات نشطة', 'Active care links'), s['active_links']),
-                tile(Icons.inbox, tr('طلبات انضمام معلقة', 'Pending join requests'), s['pending_requests']),
-              ],
-            ),
-          ]);
-        },
+            },
+          ),
+        ),
       ),
     );
   }

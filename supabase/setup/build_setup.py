@@ -65,6 +65,7 @@ PRELUDE = """-- ================================================================
 -- آمن للتشغيل أكتر من مرة: بيكمّل الناقص بس.
 -- =====================================================================
 drop trigger if exists on_auth_user_created on auth.users;
+drop function if exists public.search_doctors(text, int, int, int, double precision, double precision, boolean, numeric, smallint, int, int);
 
 """
 
@@ -73,6 +74,9 @@ PART2_HEAD = """-- =============================================================
 -- شغّل الجزء 1 الأول. آمن للتشغيل أكتر من مرة.
 -- =====================================================================
 drop function if exists public.doctor_my_patients();
+drop function if exists public.doctor_incoming_requests();
+drop function if exists public.patient_my_doctors();
+drop function if exists public.search_doctors(text, int, int, int, double precision, double precision, boolean, numeric, smallint, int, int);
 
 """
 
@@ -122,7 +126,8 @@ def build():
     p1 = PRELUDE + idempotent((M / "0001_phase1_core.sql").read_text(encoding="utf-8")) + PART1_TAIL
     p2 = PART2_HEAD + "\n".join(
         idempotent((M / n).read_text(encoding="utf-8"))
-        for n in ("0002_phase1_app_api.sql", "0003_phase1_storage.sql", "0004_accounts_admin.sql")
+        for n in ("0002_phase1_app_api.sql", "0003_phase1_storage.sql", "0004_accounts_admin.sql",
+                  "0005_avatars.sql", "0006_avatars_in_lists.sql")
     ) + BACKFILL
     out = ROOT / "setup"
     (out / "part1.sql").write_text(p1, encoding="utf-8")

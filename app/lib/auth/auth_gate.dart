@@ -28,6 +28,7 @@ class _AuthGateState extends State<AuthGate> {
     super.initState();
     AppState.loadAppName();
     _sub = supa.auth.onAuthStateChange.listen((data) {
+      if (data.event == AuthChangeEvent.signedOut) AppState.context = const {};
       if (data.event == AuthChangeEvent.passwordRecovery) {
         navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const NewPasswordScreen()));
       }

@@ -4,6 +4,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../common/map_widgets.dart';
+import '../core/avatar.dart';
+import '../core/backgrounds.dart';
 import '../core/l10n.dart';
 import '../core/lookups.dart';
 import '../core/supa.dart';
@@ -313,12 +315,8 @@ class _DoctorCard extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: cs.primaryContainer,
-                child: Text((d['full_name'] as String? ?? '?').characters.first,
-                    style: TextStyle(fontSize: 22, color: cs.onPrimaryContainer, fontWeight: FontWeight.w700)),
-              ),
+              UserAvatar(url: d['avatar_url'] as String?, name: d['full_name'] as String?, radius: 28,
+                  ring: specialtyLook(d['specialty_en'] as String?).accent),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

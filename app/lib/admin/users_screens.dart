@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../common/settings_screen.dart';
+import '../core/avatar.dart';
 import '../core/l10n.dart';
+import '../core/look3d.dart';
 import '../core/lookups.dart';
 import '../core/phone.dart';
 import '../core/supa.dart';
@@ -102,13 +104,17 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Card(
                             child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: u['is_suspended'] == true ? cs.errorContainer : cs.primaryContainer,
-                                child: Icon(switch (u['role']) {
-                                  'doctor' => Icons.medical_services,
-                                  'admin' => Icons.admin_panel_settings,
-                                  _ => Icons.person,
-                                }),
+                              leading: UserAvatar(
+                                url: u['avatar_url'] as String?,
+                                name: u['full_name'] as String?,
+                                radius: 24,
+                                ring: u['is_suspended'] == true
+                                    ? cs.error
+                                    : switch (u['role']) {
+                                        'doctor' => Tone.teal,
+                                        'admin' => Tone.indigo,
+                                        _ => Tone.blue,
+                                      },
                               ),
                               title: Text(u['full_name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w700)),
                               subtitle: Text([
