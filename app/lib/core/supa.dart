@@ -80,6 +80,13 @@ String friendlyError(Object e) {
     'verification and rating fields': ('لا يمكن تعديل حالة التوثيق أو التقييم.', 'Verification and rating cannot be edited.'),
     'row-level security': ('ليس لديك صلاحية لهذه العملية.', 'You do not have permission for this action.'),
     'permission denied': ('ليس لديك صلاحية لهذه العملية.', 'You do not have permission for this action.'),
+    'no activation code yet': ('لسه ما اتبعتلكش كود تفعيل. اطلبه على واتساب الأول.',
+        'No activation code yet. Request it on WhatsApp first.'),
+    'activation code expired': ('الكود انتهت صلاحيته (7 أيام). اطلب كود جديد.', 'The code expired (7 days). Request a new one.'),
+    'too many wrong attempts': ('محاولات غلط كتير. اطلب كود جديد من الإدارة.', 'Too many wrong attempts. Ask for a new code.'),
+    'code already used': ('الكود ده اتستخدم قبل كده.', 'This code was already used.'),
+    'invalid phone number': ('رقم الموبايل غير صحيح. اكتب رقم مصري 11 رقم.', 'Invalid mobile number. Use an 11-digit Egyptian number.'),
+    'account already exists': ('فيه حساب مسجل بالرقم أو الإيميل ده بالفعل.', 'An account with this mobile or email already exists.'),
     'payload too large': ('الملف أكبر من الحد المسموح (10 ميجا).', 'File is larger than the 10 MB limit.'),
     'mime type': ('نوع الملف غير مسموح. المسموح: JPG وPNG وPDF.', 'File type not allowed. Use JPG, PNG or PDF.'),
   };

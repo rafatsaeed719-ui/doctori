@@ -162,6 +162,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirm = TextEditingController();
+  final _phone = TextEditingController();
   String _role = 'patient';
   bool _agreed = false;
   bool _hide = true;
@@ -182,6 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         data: {
           'full_name': _name.text.trim(),
           'role': _role,
+          if (_phone.text.trim().isNotEmpty) 'phone': normalizeEgPhone(_phone.text) ?? _phone.text.trim(),
           'locale': L10n.isAr ? 'ar' : 'en',
           'terms_accepted_at': DateTime.now().toUtc().toIso8601String(),
         },
@@ -239,6 +241,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
             decoration: InputDecoration(labelText: tr('الاسم بالكامل', 'Full name'), prefixIcon: const Icon(Icons.badge_outlined)),
             validator: (v) => (v == null || v.trim().length < 2) ? tr('اكتب اسمك', 'Enter your name') : null,
           ),
+          if (_role == 'doctor') ...[
+            const SizedBox(height: 14),
+            TextFormField(
+              controller: _phone,
+              keyboardType: TextInputType.phone,
+              textDirection: TextDirection.ltr,
+              decoration: InputDecoration(
+                labelText: tr('رقم الموبايل (واتساب) *', 'Mobile number (WhatsApp) *'),
+                hintText: '01xxxxxxxxx',
+                prefixIcon: const Icon(Icons.phone_android),
+                helperText: tr('هيوصلك عليه كود تفعيل حسابك', 'Your activation code is sent to this number'),
+              ),
+              validator: phoneValidator,
+            ),
+          ],
           const SizedBox(height: 14),
           TextFormField(
             controller: _email,

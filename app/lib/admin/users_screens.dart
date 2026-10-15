@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../common/settings_screen.dart';
 import '../core/avatar.dart';
@@ -404,9 +406,12 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
               Navigator.push(context, MaterialPageRoute(builder: (_) => ClinicsScreen(doctorId: _id)));
               _mark();
             }),
-            if (status != 'verified')
-              action(Icons.verified, tr('توثيق الطبيب (يظهر للمرضى)', 'Verify doctor'), () => _review('verified'),
+            if (status != 'verified') ...[
+              action(Icons.key_rounded, tr('توليد كود تفعيل وإرساله واتساب', 'Issue activation code (WhatsApp)'),
+                  () => issueActivationCode(context, doctorId: _id, name: u['full_name'] as String? ?? ''),
                   color: Colors.green.shade700),
+              action(Icons.verified, tr('توثيق مباشر بدون كود', 'Verify directly (no code)'), () => _review('verified')),
+            ],
             if (status == 'verified')
               action(Icons.block, tr('إيقاف الظهور للمرضى', 'Hide from patients (suspend)'), () => _review('suspended'),
                   color: Colors.orange.shade800),
@@ -423,4 +428,54 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
       ),
     );
   }
+}
+
+/// Admin: issue a 6-digit activation code for a doctor and send it on WhatsApp.
+Future<void> issueActivationCode(BuildContext context, {required String doctorId, required String name}) async {
+  Map<String, dynamic>? res;
+  final ok = await runBusy(context, () async {
+    final r = await rpc('admin_issue_doctor_code', {'p_doctor': doctorId});
+    res = r is Map ? Map<String, dynamic>.from(r) : null;
+  });
+  if (!ok || res == null || !context.mounted) return;
+  final code = res!['code'] as String;
+  final phone = res!['phone'] as String?;
+  final text = 'أهلاً د. $name 👋\nكود تفعيل حسابك على تطبيق دكتوري: $code\nافتح التطبيق ← «② عندي الكود، فعّل حسابي» واكتبه.\nالكود صالح 7 أيام.';
+  await showDialog<void>(
+    context: context,
+    builder: (c) => AlertDialog(
+      icon: const Icon3D(Icons.key_rounded, color: Tone.amber, size: 56),
+      title: Text(tr('كود التفعيل', 'Activation code')),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        SelectableText(code,
+            textDirection: TextDirection.ltr,
+            style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900, letterSpacing: 8)),
+        const SizedBox(height: 8),
+        Text(phone == null || phone.isEmpty
+            ? tr('الدكتور ما سجّلش رقم موبايل. انسخ الكود وابعتهوله بأي طريقة.', 'No mobile on file. Copy and send the code.')
+            : '${tr('هيتبعت على', 'Will be sent to')} ${displayPhone(phone)}',
+            textAlign: TextAlign.center),
+      ]),
+      actions: [
+        TextButton.icon(
+          icon: const Icon(Icons.copy),
+          label: Text(tr('نسخ', 'Copy')),
+          onPressed: () async {
+            await Clipboard.setData(ClipboardData(text: text));
+            if (c.mounted) showMessage(c, tr('تم النسخ', 'Copied'));
+          },
+        ),
+        if (phone != null && phone.isNotEmpty)
+          FilledButton.icon(
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white,
+                minimumSize: const Size(88, 44)),
+            icon: const Icon(Icons.chat_rounded),
+            label: Text(tr('إرسال واتساب', 'Send WhatsApp')),
+            onPressed: () => launchUrl(Uri.parse('https://wa.me/$phone?text=${Uri.encodeComponent(text)}'),
+                mode: LaunchMode.externalApplication),
+          ),
+        TextButton(onPressed: () => Navigator.pop(c), child: Text(tr('تم', 'Done'))),
+      ],
+    ),
+  );
 }

@@ -7,6 +7,7 @@ import '../core/l10n.dart';
 import '../core/look3d.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
+import 'activation_card.dart';
 import 'add_patient_screen.dart';
 import 'clinics_screen.dart';
 import 'doctor_profile_screen.dart';
@@ -113,7 +114,6 @@ class _Dashboard extends StatelessWidget {
     final verified = status == 'verified';
     final profileDone = doc['specialty_id'] != null && (doc['license_number'] as String?)?.isNotEmpty == true;
     final clinics = data['clinics'] as int;
-    final submitted = data['submitted'] as bool;
     final specialty = L10n.isAr ? ctx['specialty_ar'] : (ctx['specialty_en'] ?? ctx['specialty_ar']);
 
     Future<void> openProfile() async {
@@ -179,10 +179,15 @@ class _Dashboard extends StatelessWidget {
               _step(context, 1, tr('أكمل بياناتك المهنية (التخصص ورقم الترخيص)', 'Complete your professional info'),
                   profileDone, openProfile),
               _step(context, 2, tr('أضف عيادة وحدد موقعها', 'Add a clinic with its location'), clinics > 0, () => goTo(3)),
-              _step(context, 3, tr('ارفع مستندات الترخيص', 'Upload licence documents'), submitted, openVerification),
+              _step(context, 3, tr('فعّل حسابك بكود من الإدارة (واتساب)', 'Activate with a code from the admin'),
+                  false, () {}),
             ]),
           ),
           const SizedBox(height: 14),
+          if (status != 'suspended') ...[
+            ActivationCard(doctor: doc, onActivated: reload),
+            const SizedBox(height: 14),
+          ],
         ],
         TileGrid(children: [
           Tile3D(icon: Icons.inbox_rounded, color: Tone.orange, label: tr('طلبات الانضمام', 'Join requests'),

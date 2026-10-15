@@ -49,7 +49,7 @@ def idempotent(sql: str) -> str:
     sql = sql.replace(
         "insert into public.app_settings (key, value) values",
         "insert into public.app_settings (key, value) values", 1)
-    sql = re.sub(r"(insert into public\.app_settings \(key, value\) values[^;]*);",
+    sql = re.sub(r"(insert into public\.app_settings \(key, value\) values(?:(?!on conflict)[^;])*);",
                  r"\1\non conflict (key) do nothing;", sql, flags=re.S)
     sql = re.sub(r"insert into public\.specialties \(name_ar, name_en, sort_order\) values([^;]*);",
                  r"insert into public.specialties (name_ar, name_en, sort_order)\n"
@@ -76,6 +76,7 @@ PART2_HEAD = """-- =============================================================
 drop function if exists public.doctor_my_patients();
 drop function if exists public.doctor_incoming_requests();
 drop function if exists public.patient_my_doctors();
+drop function if exists public.doctor_activate_with_code(text);
 drop function if exists public.search_doctors(text, int, int, int, double precision, double precision, boolean, numeric, smallint, int, int);
 
 """
@@ -127,7 +128,8 @@ def build():
     p2 = PART2_HEAD + "\n".join(
         idempotent((M / n).read_text(encoding="utf-8"))
         for n in ("0002_phase1_app_api.sql", "0003_phase1_storage.sql", "0004_accounts_admin.sql",
-                  "0005_avatars.sql", "0006_avatars_in_lists.sql")
+                  "0005_avatars.sql", "0006_avatars_in_lists.sql",
+                  "0007_avatar_read.sql", "0008_doctor_activation.sql")
     ) + BACKFILL
     out = ROOT / "setup"
     (out / "part1.sql").write_text(p1, encoding="utf-8")

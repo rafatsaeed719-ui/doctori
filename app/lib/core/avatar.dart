@@ -121,7 +121,7 @@ Future<bool> changeMyAvatar(BuildContext context) async {
     final png = await _shrinkToPng(raw);
     final path = '$myId/avatar_${DateTime.now().millisecondsSinceEpoch}.png';
     await supa.storage.from('avatars').uploadBinary(path, png,
-        fileOptions: FileOptions(contentType: 'image/png', upsert: true));
+        fileOptions: FileOptions(contentType: 'image/png', upsert: false));
     final url = supa.storage.from('avatars').getPublicUrl(path);
     await supa.from('profiles').update({'avatar_url': url}).eq('id', myId);
     AppState.updateContext({'avatar_url': url});

@@ -7,6 +7,7 @@ import '../core/backgrounds.dart';
 import '../core/l10n.dart';
 import '../core/look3d.dart';
 import '../core/lookups.dart';
+import '../core/phone.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
 import 'users_screens.dart';
@@ -350,9 +351,17 @@ class _DoctorReview extends StatelessWidget {
             text: tr('تأكد من مطابقة الاسم ورقم الترخيص مع المستندات قبل التوثيق. كل قرار يُسجّل في سجل التدقيق.',
                 'Match the name and licence number with the documents before verifying. Every decision is audit-logged.')),
         const SizedBox(height: 16),
-        if (d['status'] != 'verified')
-          FilledButton.icon(onPressed: () => _decide(context, 'verified'), icon: const Icon(Icons.verified),
-              label: Text(tr('توثيق الطبيب', 'Verify doctor'))),
+        if (d['status'] != 'verified') ...[
+          FilledButton.icon(
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white),
+            onPressed: () => issueActivationCode(context, doctorId: d['id'] as String, name: d['full_name'] as String? ?? ''),
+            icon: const Icon(Icons.key_rounded),
+            label: Text(tr('توليد كود تفعيل وإرساله واتساب', 'Issue activation code (WhatsApp)')),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(onPressed: () => _decide(context, 'verified'), icon: const Icon(Icons.verified),
+              label: Text(tr('توثيق مباشر بدون كود', 'Verify directly (no code)'))),
+        ],
         const SizedBox(height: 10),
         if (d['status'] == 'pending')
           OutlinedButton.icon(onPressed: () => _decide(context, 'rejected'), icon: const Icon(Icons.close),
@@ -377,6 +386,41 @@ class _PlatformSettings extends StatefulWidget {
 
 class _PlatformSettingsState extends State<_PlatformSettings> {
   int _key = 0;
+  String? _whatsapp;
+
+  Future<void> _editWhatsApp() async {
+    final ctl = TextEditingController(text: displayPhone(_whatsapp));
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(tr('رقم واتساب الإدارة', 'Admin WhatsApp number')),
+        content: TextField(
+          controller: ctl,
+          keyboardType: TextInputType.phone,
+          textDirection: TextDirection.ltr,
+          decoration: InputDecoration(
+            hintText: '01xxxxxxxxx',
+            helperText: tr('الأطباء بيبعتوا عليه طلب كود التفعيل', 'Doctors message this number for their code'),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(tr('إلغاء', 'Cancel'))),
+          FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(88, 44)),
+              onPressed: () => Navigator.pop(c, true), child: Text(tr('حفظ', 'Save'))),
+        ],
+      ),
+    );
+    if (go != true || !mounted) return;
+    final n = normalizeEgPhone(ctl.text);
+    if (n == null) {
+      showMessage(context, tr('اكتب رقم مصري صحيح (11 رقم)', 'Enter a valid Egyptian number'), error: true);
+      return;
+    }
+    final ok = await runBusy(context, () async {
+      await supa.from('app_settings').upsert({'key': 'admin_whatsapp', 'value': n});
+    }, success: tr('تم الحفظ', 'Saved'));
+    if (ok) setState(() => _key++);
+  }
 
   Future<void> _editAppName(Map<String, dynamic>? current) async {
     final ar = TextEditingController(text: current?['ar'] as String? ?? 'دكتوري');
@@ -457,6 +501,8 @@ class _PlatformSettingsState extends State<_PlatformSettings> {
           final name = await supa.from('app_settings').select('value').eq('key', 'app_name').maybeSingle();
           final specs = await supa.from('specialties').select().order('sort_order');
           final v = name?['value'];
+          final wa = await supa.from('app_settings').select('value').eq('key', 'admin_whatsapp').maybeSingle();
+          _whatsapp = wa?['value'] as String?;
           return (v is Map ? Map<String, dynamic>.from(v) : null, specs);
         },
         builder: (context, data, reload) {
@@ -469,6 +515,17 @@ class _PlatformSettingsState extends State<_PlatformSettings> {
                 subtitle: Text('${appName?['ar'] ?? 'دكتوري'} / ${appName?['en'] ?? 'Doctori'}'),
                 trailing: const Icon(Icons.edit_outlined),
                 onTap: () => _editAppName(appName),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.chat_rounded, color: Color(0xFF25D366)),
+                title: Text(tr('رقم واتساب الإدارة', 'Admin WhatsApp number')),
+                subtitle: Text(_whatsapp == null ? tr('غير محدد', 'Not set') : displayPhone(_whatsapp),
+                    textDirection: TextDirection.ltr, textAlign: L10n.isAr ? TextAlign.right : TextAlign.left),
+                trailing: const Icon(Icons.edit_outlined),
+                onTap: _editWhatsApp,
               ),
             ),
             SectionTitle(tr('التخصصات الطبية', 'Medical specialties')),
