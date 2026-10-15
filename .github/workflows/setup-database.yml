@@ -1,0 +1,61 @@
+name: Setup Supabase database
+
+# Runs the re-runnable setup scripts against the Supabase database, so nobody
+# has to copy/paste SQL on a phone. Needs one repository secret:
+#   SUPABASE_DB_PASSWORD  — the project's database password
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/setup/part*.sql"
+      - ".github/workflows/setup-database.yml"
+
+jobs:
+  setup-db:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_REF: kmhfyfgrtcgvrgdfkjqz
+      PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PGSSLMODE: require
+      PGCONNECT_TIMEOUT: "15"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the password secret
+        run: |
+          if [ -z "$PGPASSWORD" ]; then
+            echo "::error::Add the SUPABASE_DB_PASSWORD secret first (GitHub → Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
+      - name: Install psql
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null
+
+      - name: Find the database connection (Frankfurt pooler)
+        id: conn
+        run: |
+          for host in aws-0-eu-central-1.pooler.supabase.com aws-1-eu-central-1.pooler.supabase.com; do
+            if psql -h "$host" -p 5432 -U "postgres.$PROJECT_REF" -d postgres -tAc "select 'connected'" 2>/tmp/err; then
+              echo "host=$host" >> "$GITHUB_OUTPUT"; echo "Connected via $host"; exit 0
+            fi
+            echo "Could not use $host: $(head -c 300 /tmp/err)"
+          done
+          echo "::error::Could not connect. Check the database password."
+          exit 1
+
+      - name: Run part 1 (tables)
+        run: psql -h "${{ steps.conn.outputs.host }}" -p 5432 -U "postgres.$PROJECT_REF" -d postgres -v ON_ERROR_STOP=1 -q -f supabase/setup/part1.sql
+
+      - name: Run part 2 (functions, storage, accounts, admin)
+        run: psql -h "${{ steps.conn.outputs.host }}" -p 5432 -U "postgres.$PROJECT_REF" -d postgres -v ON_ERROR_STOP=1 -q -f supabase/setup/part2.sql
+
+      - name: Report
+        run: |
+          psql -h "${{ steps.conn.outputs.host }}" -p 5432 -U "postgres.$PROJECT_REF" -d postgres -c "
+            select
+              (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                where n.nspname = 'public' and p.proname in ('get_my_context','admin_list_users','doctor_create_patient')) as app_functions,
+              (select count(*) from public.specialties) as specialties,
+              (select count(*) from public.profiles) as accounts,
+              (select role from public.profiles where lower(email) = 'rafatsaeed719@gmail.com') as owner_role;"
