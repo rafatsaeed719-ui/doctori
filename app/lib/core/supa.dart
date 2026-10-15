@@ -112,3 +112,18 @@ Future<void> refreshMyContext() async {
     if (r is Map) AppState.context = Map<String, dynamic>.from(r);
   } catch (_) {/* keep the old context */}
 }
+
+// ---------------------------------------------------------------------------
+// Doctor vs assistant: assistants work on behalf of one doctor with chosen permissions.
+// ---------------------------------------------------------------------------
+bool get isAssistant => AppState.context['role'] == 'assistant';
+Map<String, dynamic> get _assistantOf =>
+    (AppState.context['assistant_of'] as Map?)?.cast<String, dynamic>() ?? const {};
+
+/// The doctor whose data the signed-in user works on (themselves, or the doctor an assistant works for).
+String actingDoctorId() => isAssistant ? (_assistantOf['doctor_id'] as String? ?? myId) : myId;
+
+String? actingDoctorStatus() => isAssistant ? _assistantOf['doctor_status'] as String? : AppState.context['doctor_status'] as String?;
+
+/// Doctors can do everything; assistants only what the doctor allowed: bookings, patients, add_patients, medical.
+bool can(String perm) => !isAssistant || _assistantOf['can_$perm'] == true;

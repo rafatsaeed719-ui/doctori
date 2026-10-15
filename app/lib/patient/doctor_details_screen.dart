@@ -7,6 +7,7 @@ import '../core/backgrounds.dart';
 import '../core/l10n.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
+import 'booking_screens.dart';
 
 class DoctorDetailsScreen extends StatelessWidget {
   const DoctorDetailsScreen({super.key, required this.doctorId});
@@ -105,12 +106,22 @@ class _DoctorBody extends StatelessWidget {
       SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: FilledButton.icon(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+           if (clinics.isNotEmpty) ...[
+            FilledButton.icon(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(doctor: d))),
+              icon: const Icon(Icons.event_available_rounded),
+              label: Text(tr('احجز موعد في العيادة', 'Book a clinic appointment')),
+            ),
+            const SizedBox(height: 8),
+           ],
+           OutlinedButton.icon(
             onPressed: accepting ? () => _join(context, clinics) : null,
             icon: const Icon(Icons.how_to_reg),
-            label: Text(accepting ? tr('الانضمام إلى عيادة الطبيب', 'Join this doctor’s clinic')
+            label: Text(accepting ? tr('الانضمام إلى عيادة الطبيب (متابعة)', 'Join this doctor’s clinic (follow-up)')
                 : tr('الطبيب لا يستقبل مرضى جدداً', 'Not accepting new patients')),
-          ),
+           ),
+          ]),
         ),
       ),
     ]);

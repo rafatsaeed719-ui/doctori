@@ -9,6 +9,8 @@ import '../core/supa.dart';
 import '../core/widgets.dart';
 import 'activation_card.dart';
 import 'add_patient_screen.dart';
+import 'assistants_screen.dart';
+import 'bookings_screen.dart';
 import 'clinics_screen.dart';
 import 'doctor_profile_screen.dart';
 import 'patients_requests_screens.dart';
@@ -190,6 +192,9 @@ class _Dashboard extends StatelessWidget {
           ],
         ],
         TileGrid(children: [
+          Tile3D(icon: Icons.event_note_rounded, color: Tone.indigo, label: tr('الحجوزات', 'Bookings'),
+              subtitle: tr('التقويم والكشوفات', 'Calendar & visits'),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BookingsScreen()))),
           Tile3D(icon: Icons.inbox_rounded, color: Tone.orange, label: tr('طلبات الانضمام', 'Join requests'),
               badge: data['requests'] as int, subtitle: tr('${data['requests']} جديد', '${data['requests']} new'),
               onTap: () => goTo(1)),
@@ -209,6 +214,15 @@ class _Dashboard extends StatelessWidget {
               subtitle: tr('$clinics عيادة', '$clinics clinics'), onTap: () => goTo(3)),
           Tile3D(icon: Icons.badge_rounded, color: look.accent, label: tr('بياناتي المهنية', 'Professional info'),
               subtitle: tr('التخصص والخبرة', 'Specialty & experience'), onTap: openProfile),
+          Tile3D(icon: Icons.groups_rounded, color: Tone.sky, label: tr('المساعدين', 'Assistants'),
+              subtitle: tr('وصلاحياتهم', 'and permissions'),
+              onTap: () {
+                if (!verified) {
+                  showMessage(context, tr('متاح بعد تفعيل حسابك.', 'Available after activation.'), error: true);
+                  return;
+                }
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const AssistantsScreen()));
+              }),
           Tile3D(icon: Icons.verified_rounded, color: Tone.purple, label: tr('التوثيق', 'Verification'),
               subtitle: verified ? tr('موثّق', 'Verified') : tr('المستندات', 'Documents'), onTap: openVerification),
         ]),

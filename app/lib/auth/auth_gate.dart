@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../admin/admin_home.dart';
+import '../assistant/assistant_home.dart';
 import '../core/l10n.dart';
 import '../core/lookups.dart';
 import '../core/supa.dart';
@@ -99,6 +100,7 @@ class _RoleRouterState extends State<RoleRouter> {
         return switch (ctx['role']) {
           'admin' => const AdminHome(),
           'doctor' => DoctorHome(onContextChanged: _refresh),
+          'assistant' => const AssistantHome(),
           _ => const PatientHome(),
         };
       },

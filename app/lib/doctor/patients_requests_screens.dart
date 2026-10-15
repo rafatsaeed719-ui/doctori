@@ -6,6 +6,7 @@ import '../core/phone.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
 import 'add_patient_screen.dart';
+import 'patient_file_screen.dart';
 
 class DoctorRequestsScreen extends StatelessWidget {
   const DoctorRequestsScreen({super.key});
@@ -42,11 +43,11 @@ class DoctorRequestsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final verified = AppState.context['doctor_status'] == 'verified';
+    final verified = actingDoctorStatus() == 'verified';
     return Scaffold(
       appBar: AppBar(title: Text(tr('طلبات الانضمام', 'Join requests'))),
       body: FutureView<List<Map<String, dynamic>>>(
-        load: () => rpcList('doctor_incoming_requests'),
+        load: () => rpcList('doctor_incoming_requests', {'p_doctor': actingDoctorId()}),
         builder: (context, list, reload) => RefreshList(
           onRefresh: reload,
           children: [
@@ -127,7 +128,7 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
   int _key = 0;
 
   Future<void> _add() async {
-    if (AppState.context['doctor_status'] != 'verified') {
+    if (actingDoctorStatus() != 'verified') {
       showMessage(context, tr('هتقدر تضيف مرضى بعد توثيق حسابك.', 'You can add patients once your account is verified.'), error: true);
       return;
     }
@@ -139,14 +140,14 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(tr('مرضاي', 'My patients'))),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: !can('add_patients') ? null : FloatingActionButton.extended(
         onPressed: _add,
         icon: const Icon(Icons.person_add),
         label: Text(tr('إضافة مريض', 'Add patient')),
       ),
       body: FutureView<List<Map<String, dynamic>>>(
         key: ValueKey(_key),
-        load: () => rpcList('doctor_my_patients'),
+        load: () => rpcList('doctor_my_patients', {'p_doctor': actingDoctorId()}),
         builder: (context, all, reload) {
           final list = _filter.isEmpty
               ? all
@@ -174,7 +175,11 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
                       displayPhone(p['phone'] as String?),
                       '${tr('منذ', 'Since')} ${formatDate(p['started_at'] as String?)}',
                     ].where((s) => s.isNotEmpty).join(' · ')),
-                    onTap: () => _details(context, p, reload),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => PatientFileScreen(patient: p)));
+                      reload();
+                    },
                   ),
                 ),
               ),
@@ -182,69 +187,5 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
         },
       ),
     );
-  }
-
-  Future<void> _details(BuildContext context, Map<String, dynamic> p, Future<void> Function() reload) async {
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      showDragHandle: true,
-      builder: (c) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(p['patient_name'] ?? '', style: Theme.of(c).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text('${tr('المشاركة', 'Sharing')}: ${scopeLabel(p['scope'] as String?)}'),
-            const SizedBox(height: 16),
-            InfoBanner(
-              icon: Icons.construction,
-              text: tr('الملف الطبي الكامل (الزيارات، الأدوية، المرفقات، جدول المتابعة) جاي في المرحلة الثانية.',
-                  'The full medical file (visits, medications, files, follow-up plan) arrives in phase 2.'),
-            ),
-            const SizedBox(height: 16),
-            if (p['created_by_clinic'] == true) ...[
-              OutlinedButton.icon(
-                onPressed: () => Navigator.pop(c, 'password'),
-                icon: const Icon(Icons.lock_reset),
-                label: Text(tr('تغيير كلمة السر للمريض', 'Reset patient password')),
-              ),
-              const SizedBox(height: 10),
-            ],
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(foregroundColor: Theme.of(c).colorScheme.error),
-              onPressed: () => Navigator.pop(c, 'end'),
-              icon: const Icon(Icons.link_off),
-              label: Text(tr('إنهاء المتابعة مع هذا المريض', 'End care with this patient')),
-            ),
-          ]),
-        ),
-      ),
-    );
-    if (action == null || !context.mounted) return;
-    if (action == 'password') {
-      final pw = generatePassword();
-      final ok = await runBusy(context, () async {
-        await rpc('doctor_reset_patient_password', {'p_patient': p['patient_id'], 'p_password': pw});
-      });
-      if (ok && context.mounted) {
-        await showCredentialsDialog(context,
-            name: p['patient_name'] as String? ?? '',
-            login: displayPhone(p['phone'] as String?),
-            password: pw,
-            phoneForWhatsApp: p['phone'] as String?);
-      }
-      return;
-    }
-    final yes = await confirmDialog(context,
-        title: tr('إنهاء المتابعة؟', 'End care?'),
-        body: tr('هتفقد الوصول لملف المريض، ومش هيقدر يراسلك. المريض يقدر يبعت طلب جديد بعدين.',
-            'You will lose access to the patient’s file. The patient can send a new request later.'),
-        confirm: tr('إنهاء', 'End'),
-        danger: true);
-    if (!yes || !context.mounted) return;
-    final ok = await runBusy(context, () async {
-      await rpc('end_care_link', {'p_link': p['link_id']});
-    }, success: tr('تم إنهاء المتابعة', 'Care ended'));
-    if (ok) reload();
   }
 }

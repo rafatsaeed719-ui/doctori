@@ -36,6 +36,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
         'p_phone': phone,
         'p_password': _password.text,
         'p_gender': _gender,
+        'p_doctor': actingDoctorId(),
         'p_birth_date': _birth == null
             ? null
             : '${_birth!.year}-${_birth!.month.toString().padLeft(2, '0')}-${_birth!.day.toString().padLeft(2, '0')}',

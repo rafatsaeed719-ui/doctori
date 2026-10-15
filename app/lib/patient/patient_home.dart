@@ -8,6 +8,10 @@ import '../core/l10n.dart';
 import '../core/look3d.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
+import '../core/reminders.dart';
+import 'booking_screens.dart';
+import 'medical_file_screen.dart';
+import 'meds_screen.dart';
 import 'my_doctors_screen.dart';
 import 'my_requests_screen.dart';
 import 'search_screen.dart';
@@ -84,10 +88,21 @@ class _PatientDashboard extends StatelessWidget {
   const _PatientDashboard({required this.goTo});
   final void Function(int) goTo;
 
-  Future<(int, int)> _counts() async {
+  Future<(int, int, int, int)> _counts() async {
     final docs = await rpcList('patient_my_doctors');
     final reqs = await rpcList('patient_my_requests');
-    return (docs.length, reqs.where((r) => r['status'] == 'pending').length);
+    final meds = ((await rpc('list_medications')) as List? ?? const [])
+        .map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    final appts = (await rpc('patient_my_appointments')) as List? ?? const [];
+    // Keep phone reminders in step with the latest medicines (incl. new prescriptions).
+    Reminders.sync(meds);
+    final activeMeds = meds.where((m) => m['is_active'] == true).length;
+    final upcoming = appts.where((a) {
+      final m = a as Map;
+      return (m['status'] == 'pending' || m['status'] == 'confirmed') &&
+          (DateTime.tryParse('${m['starts_at']}')?.isAfter(DateTime.now()) ?? false);
+    }).length;
+    return (docs.length, reqs.where((r) => r['status'] == 'pending').length, activeMeds, upcoming);
   }
 
   String _greeting() {
@@ -109,7 +124,7 @@ class _PatientDashboard extends StatelessWidget {
         look: patientLook,
         calm: true,
         child: SafeArea(
-          child: FutureView<(int, int)>(
+          child: FutureView<(int, int, int, int)>(
             load: _counts,
             builder: (context, counts, reload) => RefreshList(
               onRefresh: reload,
@@ -179,10 +194,21 @@ class _PatientDashboard extends StatelessWidget {
                   Tile3D(icon: Icons.outbox_rounded, color: Tone.orange, label: tr('طلباتي', 'My requests'),
                       badge: counts.$2, subtitle: tr('${counts.$2} بانتظار الرد', '${counts.$2} pending'),
                       onTap: () => goTo(3)),
+                  Tile3D(icon: Icons.medication_rounded, color: Tone.green, label: tr('علاجي', 'My treatment'),
+                      subtitle: tr('${counts.$3} دوا • تذكير بالمواعيد', '${counts.$3} medicines • reminders'),
+                      onTap: () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (_) => const MedsScreen()));
+                        reload();
+                      }),
                   Tile3D(icon: Icons.folder_shared_rounded, color: Tone.purple, label: tr('ملفي الطبي', 'My medical file'),
-                      subtitle: tr('قريباً', 'Coming soon'),
-                      onTap: () => showMessage(context, tr('الملف الطبي والمرفقات جايين في التحديث الجاي.',
-                          'Medical file and attachments arrive in the next update.'))),
+                      subtitle: tr('صور، فيديو، ملاحظات', 'Photos, videos, notes'),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicalFileScreen()))),
+                  Tile3D(icon: Icons.event_note_rounded, color: Tone.indigo, label: tr('مواعيدي', 'My appointments'),
+                      badge: counts.$4, subtitle: tr('${counts.$4} قادم', '${counts.$4} upcoming'),
+                      onTap: () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (_) => const MyAppointmentsScreen()));
+                        reload();
+                      }),
                   Tile3D(icon: Icons.person_rounded, color: Tone.pink, label: tr('حسابي', 'My account'),
                       subtitle: tr('الصورة والبيانات', 'Photo & details'), onTap: () => goTo(4)),
                   Tile3D(icon: Icons.emergency_rounded, color: Tone.red, label: tr('طوارئ 123', 'Emergency 123'),

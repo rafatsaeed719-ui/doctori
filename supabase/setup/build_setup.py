@@ -24,8 +24,8 @@ def idempotent(sql: str) -> str:
         lambda m: f"do $t$ begin create type {m.group(1)} as enum ({m.group(2)}); "
                   f"exception when duplicate_object then null; end $t$;",
         sql, flags=re.M)
-    sql = re.sub(r"^create table (public\.\w+)", r"create table if not exists \1", sql, flags=re.M)
-    sql = re.sub(r"^create unique index (\w+)", r"create unique index if not exists \1", sql, flags=re.M)
+    sql = re.sub(r"^create table (?!if not exists)(public\.\w+)", r"create table if not exists \1", sql, flags=re.M)
+    sql = re.sub(r"^create unique index (?!if not exists)(\w+)", r"create unique index if not exists \1", sql, flags=re.M)
 
     # unnamed indexes: create index on public.t (cols);
     def name_index(m):
@@ -129,7 +129,8 @@ def build():
         idempotent((M / n).read_text(encoding="utf-8"))
         for n in ("0002_phase1_app_api.sql", "0003_phase1_storage.sql", "0004_accounts_admin.sql",
                   "0005_avatars.sql", "0006_avatars_in_lists.sql",
-                  "0007_avatar_read.sql", "0008_doctor_activation.sql")
+                  "0007_avatar_read.sql", "0008_doctor_activation.sql",
+                  "0009_care_bookings_assistants.sql", "0010_medical_storage.sql")
     ) + BACKFILL
     out = ROOT / "setup"
     (out / "part1.sql").write_text(p1, encoding="utf-8")

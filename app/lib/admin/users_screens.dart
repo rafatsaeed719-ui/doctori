@@ -16,6 +16,7 @@ import '../doctor/doctor_profile_screen.dart';
 String roleLabel(String? r) => switch (r) {
       'doctor' => tr('طبيب', 'Doctor'),
       'admin' => tr('مدير', 'Admin'),
+      'assistant' => tr('مساعد طبيب', 'Assistant'),
       'patient' => tr('مريض', 'Patient'),
       _ => tr('الكل', 'All'),
     };

@@ -31,6 +31,7 @@ class _Body extends StatelessWidget {
   String get _role => switch (profile['role']) {
         'doctor' => tr('طبيب', 'Doctor'),
         'admin' => tr('مدير المنصة', 'Platform admin'),
+        'assistant' => tr('مساعد طبيب', 'Doctor’s assistant'),
         _ => tr('مريض', 'Patient'),
       };
 
