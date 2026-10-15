@@ -1,6 +1,6 @@
 name: Setup Supabase database
 
-# Runs the re-runnable setup scripts against the Supabase database, so nobody
+# Runs the re-runnable setup scripts against the Supabase database (run 0956), so nobody
 # has to copy/paste SQL on a phone. Needs one repository secret:
 #   SUPABASE_DB_PASSWORD  — the project's database password
 on:
