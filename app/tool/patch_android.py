@@ -66,4 +66,11 @@ for name in ("android/app/build.gradle.kts", "android/app/build.gradle"):
 else:
     sys.exit("No app build.gradle found")
 
+# App icon (launcher + adaptive icon) generated from the Doctori logo.
+import shutil
+res_src = pathlib.Path("tool/android_res")
+res_dst = pathlib.Path("android/app/src/main/res")
+if res_src.exists():
+    shutil.copytree(res_src, res_dst, dirs_exist_ok=True)
+
 print("Android project patched for", APP_ID)

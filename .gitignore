@@ -11,3 +11,4 @@ app/analysis_options.yaml
 *.iml
 .idea/
 .DS_Store
+app/out/

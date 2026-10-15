@@ -36,10 +36,16 @@ class WelcomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Center(
-              child: CircleAvatar(
-                radius: 52,
-                backgroundColor: cs.primary,
-                child: Icon(Icons.medical_services_rounded, size: 54, color: cs.onPrimary),
+              child: Container(
+                width: 132,
+                height: 132,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(color: cs.outlineVariant),
+                ),
+                child: Image.asset('assets/logo.png', semanticLabel: 'دكتوري'),
               ),
             ),
             const SizedBox(height: 20),
