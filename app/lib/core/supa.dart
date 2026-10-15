@@ -82,3 +82,11 @@ String friendlyError(Object e) {
   if (kDebugMode) return msg;
   return tr('حدث خطأ غير متوقع. حاول مرة أخرى.', 'Something went wrong. Please try again.');
 }
+
+/// Short technical description of an error (code + message) for support screenshots.
+String errorDetails(Object e) => switch (e) {
+      PostgrestException p => '${p.code ?? ''} ${p.message}'.trim(),
+      AuthException a => 'auth ${a.statusCode ?? ''} ${a.message}'.trim(),
+      StorageException s => 'storage ${s.statusCode ?? ''} ${s.message}'.trim(),
+      _ => e.toString(),
+    };

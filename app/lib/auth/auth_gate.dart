@@ -86,6 +86,7 @@ class _RoleRouterState extends State<RoleRouter> {
                   : tr('لم نجد بيانات حسابك. سجّل الخروج ثم الدخول مرة أخرى.',
                       'Account data not found. Log out and in again.'),
               onRetry: _refresh,
+              details: snap.hasError ? errorDetails(snap.error!) : 'empty context',
             ),
             bottomNavigationBar: SafeArea(
               child: TextButton(onPressed: () => supa.auth.signOut(), child: Text(tr('تسجيل الخروج', 'Log out'))),

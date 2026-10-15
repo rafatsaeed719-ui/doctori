@@ -36,7 +36,9 @@ class _FutureViewState<T> extends State<FutureView<T>> {
       future: _future,
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) return const LoadingView();
-        if (snap.hasError) return ErrorView(message: friendlyError(snap.error!), onRetry: _reload);
+        if (snap.hasError) {
+          return ErrorView(message: friendlyError(snap.error!), onRetry: _reload, details: errorDetails(snap.error!));
+        }
         return widget.builder(context, snap.data as T, _reload);
       },
     );
@@ -53,9 +55,11 @@ class LoadingView extends StatelessWidget {
 }
 
 class ErrorView extends StatelessWidget {
-  const ErrorView({super.key, required this.message, this.onRetry});
+  const ErrorView({super.key, required this.message, this.onRetry, this.details});
   final String message;
   final VoidCallback? onRetry;
+  /// Technical detail shown small under the message, so a screenshot tells us the real cause.
+  final String? details;
   @override
   Widget build(BuildContext context) => Center(
         child: Padding(
@@ -64,6 +68,12 @@ class ErrorView extends StatelessWidget {
             Icon(Icons.wifi_off_rounded, size: 48, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge),
+            if (details != null && details!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              SelectableText(details!.length > 300 ? details!.substring(0, 300) : details!,
+                  textAlign: TextAlign.center, textDirection: TextDirection.ltr,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline)),
+            ],
             if (onRetry != null) ...[
               const SizedBox(height: 16),
               OutlinedButton.icon(
