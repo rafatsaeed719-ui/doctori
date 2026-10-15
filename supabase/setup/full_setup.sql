@@ -1170,5 +1170,8 @@ update auth.users set email_confirmed_at = coalesce(email_confirmed_at, now())
  where lower(email) = 'rafatsaeed719@gmail.com';
 update public.profiles set role = 'admin', is_suspended = false
  where lower(email) = 'rafatsaeed719@gmail.com';
+
+-- Ask the API to reload its schema cache so the app sees the new functions immediately
+notify pgrst, 'reload schema';
 select full_name as "الاسم", role as "الصلاحية" from public.profiles
  where lower(email) = 'rafatsaeed719@gmail.com';
