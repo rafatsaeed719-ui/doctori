@@ -9,7 +9,9 @@ import '../core/supa.dart';
 import '../core/widgets.dart';
 
 class ClinicsScreen extends StatefulWidget {
-  const ClinicsScreen({super.key});
+  /// [doctorId] null = the signed-in doctor; set when the admin manages another doctor's clinics.
+  const ClinicsScreen({super.key, this.doctorId});
+  final String? doctorId;
   @override
   State<ClinicsScreen> createState() => _ClinicsScreenState();
 }
@@ -18,14 +20,15 @@ class _ClinicsScreenState extends State<ClinicsScreen> {
   int _key = 0;
 
   Future<void> _open([Map<String, dynamic>? clinic]) async {
-    final changed = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => ClinicEditScreen(clinic: clinic)));
+    final changed = await Navigator.push<bool>(context,
+        MaterialPageRoute(builder: (_) => ClinicEditScreen(clinic: clinic, doctorId: widget.doctorId ?? myId)));
     if (changed == true) setState(() => _key++);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(tr('عياداتي', 'My clinics'))),
+      appBar: AppBar(title: Text(widget.doctorId == null ? tr('عياداتي', 'My clinics') : tr('عيادات الطبيب', 'Doctor’s clinics'))),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _open(),
         icon: const Icon(Icons.add),
@@ -33,7 +36,7 @@ class _ClinicsScreenState extends State<ClinicsScreen> {
       ),
       body: FutureView<List<Map<String, dynamic>>>(
         key: ValueKey(_key),
-        load: () => supa.from('clinics').select('*, clinic_hours(*)').eq('doctor_id', myId).order('created_at'),
+        load: () => supa.from('clinics').select('*, clinic_hours(*)').eq('doctor_id', widget.doctorId ?? myId).order('created_at'),
         builder: (context, list, reload) => RefreshList(
           onRefresh: reload,
           children: list.isEmpty
@@ -86,8 +89,9 @@ String _fmt(TimeOfDay t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toS
 int _mins(TimeOfDay t) => t.hour * 60 + t.minute;
 
 class ClinicEditScreen extends StatefulWidget {
-  const ClinicEditScreen({super.key, this.clinic});
+  const ClinicEditScreen({super.key, this.clinic, required this.doctorId});
   final Map<String, dynamic>? clinic;
+  final String doctorId;
   @override
   State<ClinicEditScreen> createState() => _ClinicEditScreenState();
 }
@@ -193,7 +197,7 @@ class _ClinicEditScreenState extends State<ClinicEditScreen> {
       if (!go || !mounted) return;
     }
     final data = {
-      'doctor_id': myId,
+      'doctor_id': widget.doctorId,
       'name': _name.text.trim(),
       'address': _address.text.trim(),
       'area': _area.text.trim().isEmpty ? null : _area.text.trim(),

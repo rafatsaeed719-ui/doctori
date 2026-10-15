@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../core/l10n.dart';
+import '../core/phone.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
+import 'add_patient_screen.dart';
 
 class DoctorRequestsScreen extends StatelessWidget {
   const DoctorRequestsScreen({super.key});
@@ -114,20 +116,37 @@ class DoctorPatientsScreen extends StatefulWidget {
 
 class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
   String _filter = '';
+  int _key = 0;
+
+  Future<void> _add() async {
+    if (AppState.context['doctor_status'] != 'verified') {
+      showMessage(context, tr('هتقدر تضيف مرضى بعد توثيق حسابك.', 'You can add patients once your account is verified.'), error: true);
+      return;
+    }
+    final added = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AddPatientScreen()));
+    if (added == true) setState(() => _key++);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(tr('مرضاي', 'My patients'))),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _add,
+        icon: const Icon(Icons.person_add),
+        label: Text(tr('إضافة مريض', 'Add patient')),
+      ),
       body: FutureView<List<Map<String, dynamic>>>(
+        key: ValueKey(_key),
         load: () => rpcList('doctor_my_patients'),
         builder: (context, all, reload) {
           final list = _filter.isEmpty
               ? all
-              : all.where((p) => (p['patient_name'] as String? ?? '').contains(_filter)).toList();
+              : all.where((p) => (p['patient_name'] as String? ?? '').contains(_filter)
+                  || displayPhone(p['phone'] as String?).contains(_filter)).toList();
           return RefreshList(onRefresh: reload, children: [
             TextField(
-              decoration: InputDecoration(hintText: tr('بحث بالاسم', 'Search by name'), prefixIcon: const Icon(Icons.search)),
+              decoration: InputDecoration(hintText: tr('بحث بالاسم أو الموبايل', 'Search by name or mobile'), prefixIcon: const Icon(Icons.search)),
               onChanged: (v) => setState(() => _filter = v.trim()),
             ),
             const SizedBox(height: 12),
@@ -144,6 +163,7 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
                     subtitle: Text([
                       genderLabel(p['gender'] as String?),
                       if (p['age'] != null) tr('${p['age']} سنة', '${p['age']} yrs'),
+                      displayPhone(p['phone'] as String?),
                       '${tr('منذ', 'Since')} ${formatDate(p['started_at'] as String?)}',
                     ].where((s) => s.isNotEmpty).join(' · ')),
                     onTap: () => _details(context, p, reload),
@@ -157,7 +177,7 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
   }
 
   Future<void> _details(BuildContext context, Map<String, dynamic> p, Future<void> Function() reload) async {
-    final end = await showModalBottomSheet<bool>(
+    final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
       builder: (c) => SafeArea(
@@ -174,9 +194,17 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
                   'The full medical file (visits, medications, files, follow-up plan) arrives in phase 2.'),
             ),
             const SizedBox(height: 16),
+            if (p['created_by_clinic'] == true) ...[
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pop(c, 'password'),
+                icon: const Icon(Icons.lock_reset),
+                label: Text(tr('تغيير كلمة السر للمريض', 'Reset patient password')),
+              ),
+              const SizedBox(height: 10),
+            ],
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(foregroundColor: Theme.of(c).colorScheme.error),
-              onPressed: () => Navigator.pop(c, true),
+              onPressed: () => Navigator.pop(c, 'end'),
               icon: const Icon(Icons.link_off),
               label: Text(tr('إنهاء المتابعة مع هذا المريض', 'End care with this patient')),
             ),
@@ -184,7 +212,21 @@ class _DoctorPatientsScreenState extends State<DoctorPatientsScreen> {
         ),
       ),
     );
-    if (end != true || !context.mounted) return;
+    if (action == null || !context.mounted) return;
+    if (action == 'password') {
+      final pw = generatePassword();
+      final ok = await runBusy(context, () async {
+        await rpc('doctor_reset_patient_password', {'p_patient': p['patient_id'], 'p_password': pw});
+      });
+      if (ok && context.mounted) {
+        await showCredentialsDialog(context,
+            name: p['patient_name'] as String? ?? '',
+            login: displayPhone(p['phone'] as String?),
+            password: pw,
+            phoneForWhatsApp: p['phone'] as String?);
+      }
+      return;
+    }
     final yes = await confirmDialog(context,
         title: tr('إنهاء المتابعة؟', 'End care?'),
         body: tr('هتفقد الوصول لملف المريض، ومش هيقدر يراسلك. المريض يقدر يبعت طلب جديد بعدين.',

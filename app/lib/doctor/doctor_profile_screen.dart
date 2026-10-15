@@ -6,14 +6,16 @@ import '../core/supa.dart';
 import '../core/widgets.dart';
 
 class DoctorProfileScreen extends StatelessWidget {
-  const DoctorProfileScreen({super.key});
+  /// [doctorId] null = the signed-in doctor; set when the admin edits another doctor.
+  const DoctorProfileScreen({super.key, this.doctorId});
+  final String? doctorId;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(tr('بياناتي المهنية', 'Professional profile'))),
+      appBar: AppBar(title: Text(doctorId == null ? tr('بياناتي المهنية', 'Professional profile') : tr('البيانات المهنية', 'Professional info'))),
       body: FutureView<Map<String, dynamic>>(
-        load: () => supa.from('doctors').select().eq('id', myId).single(),
+        load: () => supa.from('doctors').select().eq('id', doctorId ?? myId).single(),
         builder: (context, doc, reload) => _Form(doc: doc),
       ),
     );
@@ -43,7 +45,7 @@ class _FormState extends State<_Form> {
   Future<void> _save() async {
     if (!_form.currentState!.validate()) return;
     final licenseChanged = (_license.text.trim()) != (widget.doc['license_number'] as String? ?? '');
-    if (_verified && licenseChanged) {
+    if (_verified && licenseChanged && widget.doc['id'] == myId) {
       final yes = await confirmDialog(context,
           title: tr('تغيير رقم الترخيص', 'Change licence number'),
           body: tr('تغيير رقم الترخيص هيرجّع حسابك للمراجعة، ومش هتظهر للمرضى لحد ما الإدارة توثّقه تاني.',
@@ -62,7 +64,7 @@ class _FormState extends State<_Form> {
         'years_experience': int.tryParse(_years.text.trim()),
         'license_number': _license.text.trim(),
         'public_phone': _phone.text.trim().isEmpty ? null : _phone.text.trim(),
-      }).eq('id', myId);
+      }).eq('id', widget.doc['id'] as String);
     }, success: tr('تم الحفظ', 'Saved'));
     if (ok && mounted) Navigator.pop(context);
   }

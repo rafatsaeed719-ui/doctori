@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/l10n.dart';
+import '../core/phone.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
 
@@ -49,7 +50,7 @@ class _Body extends StatelessWidget {
           leading: CircleAvatar(radius: 26, child: Text((profile['full_name'] as String? ?? '?').characters.first,
               style: const TextStyle(fontSize: 22))),
           title: Text(profile['full_name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w700)),
-          subtitle: Text('${profile['email'] ?? ''}\n$_role'),
+          subtitle: Text('${isPhoneLogin(profile['email'] as String?) ? displayPhone(profile['phone'] as String?) : (profile['email'] ?? '')}\n$_role'),
           isThreeLine: true,
           trailing: const Icon(Icons.edit_outlined),
           onTap: () async {
@@ -167,7 +168,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'birth_date': _birth == null
             ? null
             : '${_birth!.year}-${_birth!.month.toString().padLeft(2, '0')}-${_birth!.day.toString().padLeft(2, '0')}',
-      }).eq('id', myId);
+      }).eq('id', (widget.profile['id'] as String?) ?? myId);
     }, success: tr('تم الحفظ', 'Saved'));
     if (ok && mounted) Navigator.pop(context, true);
   }

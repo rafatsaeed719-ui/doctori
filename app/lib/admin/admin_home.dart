@@ -6,6 +6,7 @@ import '../core/l10n.dart';
 import '../core/lookups.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
+import 'users_screens.dart';
 
 /// Phase-1 admin tools inside the app: stats, doctor verification, platform settings.
 class AdminHome extends StatefulWidget {
@@ -20,7 +21,8 @@ class _AdminHomeState extends State<AdminHome> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      _Stats(goToDoctors: () => setState(() => _tab = 1)),
+      _Stats(goToDoctors: () => setState(() => _tab = 2)),
+      const AdminUsersScreen(),
       const _Doctors(),
       const _PlatformSettings(),
       const SettingsScreen(),
@@ -33,8 +35,10 @@ class _AdminHomeState extends State<AdminHome> {
         destinations: [
           NavigationDestination(icon: const Icon(Icons.insights_outlined), selectedIcon: const Icon(Icons.insights),
               label: tr('الإحصائيات', 'Stats')),
+          NavigationDestination(icon: const Icon(Icons.people_outline), selectedIcon: const Icon(Icons.people),
+              label: tr('المستخدمين', 'Users')),
           NavigationDestination(icon: const Icon(Icons.verified_user_outlined), selectedIcon: const Icon(Icons.verified_user),
-              label: tr('الأطباء', 'Doctors')),
+              label: tr('التوثيق', 'Verify')),
           NavigationDestination(icon: const Icon(Icons.settings_outlined), selectedIcon: const Icon(Icons.settings),
               label: tr('الإعدادات', 'Settings')),
           NavigationDestination(icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person),

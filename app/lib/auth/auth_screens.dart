@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/config.dart';
 import '../core/l10n.dart';
 import '../core/supa.dart';
+import '../core/phone.dart';
 import '../core/widgets.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -94,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _submit() async {
     if (!_form.currentState!.validate()) return;
     final ok = await runBusy(context, () async {
-      await supa.auth.signInWithPassword(email: _email.text.trim(), password: _password.text);
+      await supa.auth.signInWithPassword(email: loginEmailFrom(_email.text)!, password: _password.text);
     });
     if (ok && mounted) Navigator.of(context).popUntil((r) => r.isFirst);
   }
@@ -110,8 +111,13 @@ class _LoginScreenState extends State<LoginScreen> {
             controller: _email,
             keyboardType: TextInputType.emailAddress,
             textDirection: TextDirection.ltr,
-            decoration: InputDecoration(labelText: tr('الإيميل', 'Email'), prefixIcon: const Icon(Icons.email_outlined)),
-            validator: (v) => (v == null || !v.contains('@')) ? tr('اكتب إيميل صحيح', 'Enter a valid email') : null,
+            decoration: InputDecoration(
+              labelText: tr('الإيميل أو رقم الموبايل', 'Email or mobile number'),
+              prefixIcon: const Icon(Icons.person_outline),
+            ),
+            validator: (v) => loginEmailFrom(v ?? '') == null
+                ? tr('اكتب إيميل صحيح أو رقم موبايل (11 رقم)', 'Enter a valid email or mobile number')
+                : null,
           ),
           const SizedBox(height: 14),
           TextFormField(
@@ -192,8 +198,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         icon: const Icon(Icons.mark_email_read_outlined, size: 40),
         title: Text(tr('تأكيد الإيميل', 'Confirm your email')),
         content: Text(tr(
-          'بعتنالك رسالة على ${_email.text.trim()}.\nافتحها من نفس الموبايل واضغط رابط التأكيد، وهيفتح التطبيق تلقائياً.\nلو مش لاقيها شوف مجلد Spam.',
-          'We sent a message to ${_email.text.trim()}.\nOpen it on this phone and tap the link; the app will open automatically.\nCheck Spam if you can’t find it.',
+          'بعتنالك رسالة على ${_email.text.trim()}.\n1. افتحها واضغط رابط التأكيد.\n2. حتى لو فتحت صفحة غريبة أو رسالة خطأ، حسابك كده اتأكد.\n3. ارجع للتطبيق وسجّل دخول بالإيميل وكلمة السر.\nلو مش لاقي الرسالة شوف مجلد Spam.',
+          'We sent a message to ${_email.text.trim()}.\n1. Open it and tap the confirmation link.\n2. Even if it shows an odd page or error, your account is confirmed.\n3. Come back and log in with your email and password.\nCheck Spam if you can’t find it.',
         ), style: const TextStyle(height: 1.6)),
         actions: [FilledButton(onPressed: () => Navigator.pop(c), child: Text(tr('حسناً', 'OK')))],
       ),
@@ -299,7 +305,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Future<void> _send() async {
     if (!_email.text.contains('@')) {
-      showMessage(context, tr('اكتب إيميل صحيح', 'Enter a valid email'), error: true);
+      showMessage(context, tr('لو حسابك برقم الموبايل، اطلب من العيادة أو إدارة التطبيق تغيير كلمة السر.',
+          'If your account uses a mobile number, ask your clinic or the app admin to reset the password.'), error: true);
       return;
     }
     final ok = await runBusy(context,
