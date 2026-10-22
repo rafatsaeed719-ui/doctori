@@ -33,6 +33,7 @@ create table if not exists auth.users (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+alter table auth.users add column if not exists deleted_at timestamptz;
 create table if not exists auth.identities (
   provider_id text not null,
   user_id uuid not null references auth.users(id) on delete cascade,

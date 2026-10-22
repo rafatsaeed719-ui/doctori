@@ -190,7 +190,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     });
     if (!ok || !mounted) return;
-    if (res?.session != null) {
+    if (res?.session == null) {
+      // Accounts are confirmed automatically on the server, so log in right away.
+      try {
+        await supa.auth.signInWithPassword(email: _email.text.trim(), password: _password.text);
+      } catch (_) {/* fall back to the message below */}
+    }
+    if (!mounted) return;
+    if (res?.session != null || supa.auth.currentSession != null) {
       Navigator.of(context).popUntil((r) => r.isFirst);
       return;
     }
@@ -198,10 +205,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context: context,
       builder: (c) => AlertDialog(
         icon: const Icon(Icons.mark_email_read_outlined, size: 40),
-        title: Text(tr('تأكيد الإيميل', 'Confirm your email')),
+        title: Text(tr('تم إنشاء الحساب ✓', 'Account created ✓')),
         content: Text(tr(
-          'بعتنالك رسالة على ${_email.text.trim()}.\n1. افتحها واضغط رابط التأكيد.\n2. حتى لو فتحت صفحة غريبة أو رسالة خطأ، حسابك كده اتأكد.\n3. ارجع للتطبيق وسجّل دخول بالإيميل وكلمة السر.\nلو مش لاقي الرسالة شوف مجلد Spam.',
-          'We sent a message to ${_email.text.trim()}.\n1. Open it and tap the confirmation link.\n2. Even if it shows an odd page or error, your account is confirmed.\n3. Come back and log in with your email and password.\nCheck Spam if you can’t find it.',
+          'سجّل دخول دلوقتي بالإيميل وكلمة السر.\nلو ظهرت رسالة خطأ، استنى دقيقة وجرّب تاني أو كلّم إدارة التطبيق.',
+          'Log in now with your email and password.\nIf you see an error, wait a minute and try again or contact the app admin.',
         ), style: const TextStyle(height: 1.6)),
         actions: [FilledButton(onPressed: () => Navigator.pop(c), child: Text(tr('حسناً', 'OK')))],
       ),

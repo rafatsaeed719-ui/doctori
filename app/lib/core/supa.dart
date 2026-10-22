@@ -58,8 +58,8 @@ String friendlyError(Object e) {
   final m = msg.toLowerCase();
   const map = <String, (String, String)>{
     'invalid login credentials': ('الإيميل أو كلمة السر غير صحيحة.', 'Wrong email or password.'),
-    'email not confirmed': ('لم يتم تأكيد الإيميل بعد. افتح الرسالة التي وصلتك واضغط رابط التأكيد.',
-        'Email not confirmed yet. Open the message we sent you and tap the link.'),
+    'email not confirmed': ('الحساب لسه بيتجهز. استنى دقيقة وجرّب تاني، ولو استمر كلّم إدارة التطبيق.',
+        'Your account is still being set up. Wait a minute and try again, or contact the admin.'),
     'user already registered': ('هذا الإيميل مسجل بالفعل. سجّل الدخول أو استخدم «نسيت كلمة السر».',
         'This email is already registered. Log in or use “Forgot password”.'),
     'password should be at least': ('كلمة السر قصيرة. استخدم 8 حروف أو أرقام على الأقل.',

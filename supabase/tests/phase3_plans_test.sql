@@ -162,5 +162,7 @@ select set_config('request.jwt.claim.sub', 'dddddddd-dddd-dddd-dddd-dddddddddddd
 select t.ok((select count(*) from prescriptions) = 0, 'X12 other doctors see nothing');
 
 reset role;
+insert into auth.users (id, email, encrypted_password) values ('abababab-0000-0000-0000-00000000000a', 'newdoc@test.com', 'x');
+select t.ok((select email_confirmed_at is not null from auth.users where email = 'newdoc@test.com'), 'E01 email sign-ups are confirmed automatically');
 \set QUIET off
 select count(*) as plan_tests_passed from t.results;
