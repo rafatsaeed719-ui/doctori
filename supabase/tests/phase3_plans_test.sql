@@ -134,6 +134,33 @@ select t.ok((finance_day()->'prices'->>'visit')::int = 300, 'M18 doctor saves th
 select delete_finance_entry('expense', (select id from doctor_expenses limit 1));
 select t.ok((finance_day()->>'expenses')::numeric = 0, 'M19 doctor deletes an expense');
 
+-- ---------- الروشتة ----------
+select set_config('request.jwt.claim.sub', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', false);
+create temp table rx1 as select create_prescription('f1f1f1f1-0000-0000-0000-000000000001', null,
+  '[{"name":"أوجمنتين 1جم","form":"tablet","dose":"قرص","every_hours":12,"days":7,"instructions":"بعد الأكل"},
+    {"name":"مرهم","form":"cream","dose":"دهان","instructions":"مرتين"}]'::jsonb, 'التهاب لوز') as id;
+select t.ok((select patient_name from prescriptions where id = (select id from rx1)) = 'مريض كامل', 'X01 doctor writes a prescription for a linked patient');
+select t.ok((select count(*) from medications where name = 'أوجمنتين 1جم' and end_date is not null and form = 'tablet') = 1,
+            'X02 timed medicines also go to «علاجي» with reminders');
+select t.ok((select count(*) from medications where name = 'مرهم') = 0, 'X03 items without a schedule stay on paper only');
+select create_prescription(null, 'زائر بدون حساب', '[{"name":"باراسيتامول"}]'::jsonb);
+select t.ok((select count(*) from prescriptions where patient_id is null) = 1, 'X04 walk-in prescription by name (print only)');
+select t.fails($$select create_prescription('f3f3f3f3-0000-0000-0000-000000000003', null, '[{"name":"x"}]'::jsonb)$$, 'X05 not for unlinked patients');
+select t.fails($$select create_prescription(null, 'x y', '[]'::jsonb)$$, 'X06 needs at least one medicine');
+select set_rx_settings('{"logo_url":"https://x/logo.png","whatsapp":"01000000000"}'::jsonb);
+select t.ok((rx_header()->'settings'->>'whatsapp') = '01000000000' and rx_header()->>'doctor_name' is not null, 'X07 header with settings');
+select t.ok(jsonb_array_length(list_prescriptions(null, 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee')) = 2, 'X08 doctor sees own prescriptions');
+
+select set_config('request.jwt.claim.sub', 'f1f1f1f1-0000-0000-0000-000000000001', false);
+select t.ok(jsonb_array_length(list_prescriptions()) = 1, 'X09 patient sees their prescription');
+select t.ok((rx_header('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee')->'settings'->>'logo_url') is not null, 'X10 patient can draw the header');
+
+select set_config('request.jwt.claim.sub', 'f2f2f2f2-0000-0000-0000-000000000002', false);
+select t.ok(jsonb_array_length(list_prescriptions(null, 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee')) = 0
+            and (select count(*) from prescriptions) = 0, 'X11 other patients see nothing');
+select set_config('request.jwt.claim.sub', 'dddddddd-dddd-dddd-dddd-dddddddddddd', false);
+select t.ok((select count(*) from prescriptions) = 0, 'X12 other doctors see nothing');
+
 reset role;
 \set QUIET off
 select count(*) as plan_tests_passed from t.results;

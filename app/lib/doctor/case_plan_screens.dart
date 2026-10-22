@@ -15,7 +15,8 @@ String _iso(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.
 /// The form of the signed-in doctor (or the doctor an assistant works for).
 CaseTemplate myCaseTemplate() {
   final ctx = AppState.context;
-  final en = isAssistant ? (ctx['assistant_of'] as Map?)?['specialty_en'] as String? : ctx['specialty_en'] as String?;
+  final of = ctx['assistant_of'] as Map?;
+  final String? en = isAssistant ? (of?['specialty_en'] as String?) : (ctx['specialty_en'] as String?);
   return templateForSpecialty(en);
 }
 
@@ -537,7 +538,8 @@ String followupWhen(Map<String, dynamic> f) {
 }
 
 String followupMessage(Map<String, dynamic> f, {String? patientName}) {
-  final doctor = isAssistant ? (AppState.context['assistant_of'] as Map?)?['doctor_name'] : AppState.context['full_name'];
+  final of = AppState.context['assistant_of'] as Map?;
+  final Object? doctor = isAssistant ? (of?['doctor_name']) : AppState.context['full_name'];
   return tr(
     'أهلاً ${patientName ?? ''} 👋\nميعاد المتابعة بتاعك مع د. ${doctor ?? ''}:\n📅 ${followupWhen(f)}\n🩺 ${f['title']}'
         '${(f['notes'] as String?)?.isNotEmpty == true ? '\n📝 ${f['notes']}' : ''}\nهتلاقي الميعاد كمان في تطبيق ${AppState.appName.value}.',
