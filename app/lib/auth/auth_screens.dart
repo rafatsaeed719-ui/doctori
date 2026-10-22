@@ -190,6 +190,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     });
     if (!ok || !mounted) return;
+    // Supabase answers "sent" without creating anything when the email already has an account.
+    if (res?.session == null && (res?.user?.identities?.isEmpty ?? false)) {
+      await showDialog<void>(
+        context: context,
+        builder: (c) => AlertDialog(
+          icon: const Icon(Icons.info_outline, size: 40),
+          title: Text(tr('الإيميل ده عليه حساب من قبل', 'This email already has an account')),
+          content: Text(tr(
+            'ادخل من «تسجيل الدخول» بكلمة السر اللي سجلت بيها أول مرة.\nلو نسيتها، اطلب من إدارة التطبيق تعملك كلمة سر جديدة.',
+            'Log in with the password you first registered with.\nIf you forgot it, ask the app admin to set a new one.',
+          ), style: const TextStyle(height: 1.6)),
+          actions: [FilledButton(onPressed: () => Navigator.pop(c), child: Text(tr('حسناً', 'OK')))],
+        ),
+      );
+      return;
+    }
     if (res?.session == null) {
       // Accounts are confirmed automatically on the server, so log in right away.
       try {
