@@ -1,0 +1,40 @@
+name: Diagnose accounts
+
+# Read-only check of recent sign-ups (shown as notes on the run page). Changes nothing.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/diagnose-accounts.yml"
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_REF: kmhfyfgrtcgvrgdfkjqz
+      PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PGSSLMODE: require
+      PGCONNECT_TIMEOUT: "15"
+    steps:
+      - name: Install psql
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null
+      - name: Recent accounts
+        run: |
+          for host in aws-0-eu-central-1.pooler.supabase.com aws-1-eu-central-1.pooler.supabase.com; do
+            psql -h "$host" -p 5432 -U "postgres.$PROJECT_REF" -d postgres -tAc "select 1" >/dev/null 2>&1 || continue
+            psql -h "$host" -p 5432 -U "postgres.$PROJECT_REF" -d postgres -tA -F ' | ' -c "
+              select u.email, u.created_at::timestamp(0), 'confirmed=' || (u.email_confirmed_at is not null),
+                     'last_login=' || coalesce(u.last_sign_in_at::timestamp(0)::text, '-'),
+                     'has_pw=' || (coalesce(u.encrypted_password, '') <> ''),
+                     'deleted=' || (u.deleted_at is not null), 'role=' || coalesce(p.role::text, 'NO PROFILE'),
+                     'banned=' || coalesce(u.banned_until::text, '-')
+              from auth.users u left join public.profiles p on p.id = u.id
+              order by u.created_at desc limit 15;" | while read -r l; do echo "::notice::$l"; done
+            psql -h "$host" -p 5432 -U "postgres.$PROJECT_REF" -d postgres -tA -c "
+              select 'trigger auto_confirm=' || count(*) from pg_trigger where tgname = 'auto_confirm_email';
+              select 'auth audit: ' || created_at::timestamp(0) || ' ' || coalesce(payload->>'action','') || ' ' || coalesce(payload->>'actor_username','')
+                from auth.audit_log_entries order by created_at desc limit 12;" | while read -r l; do echo "::notice::$l"; done
+            exit 0
+          done
+          echo "::error::could not connect"; exit 1
