@@ -14,6 +14,7 @@ import 'medical_file_screen.dart';
 import 'meds_screen.dart';
 import 'my_doctors_screen.dart';
 import 'my_plan_screen.dart';
+import '../doctor/rx_screens.dart';
 import 'my_requests_screen.dart';
 import 'search_screen.dart';
 
@@ -217,6 +218,9 @@ class _PatientDashboard extends StatelessWidget {
                         await Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPlanScreen()));
                         reload();
                       }),
+                  Tile3D(icon: Icons.receipt_long_rounded, color: Tone.amber, label: tr('روشتاتي', 'My prescriptions'),
+                      subtitle: tr('اطبعها أو ابعتها', 'Print or share'),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPrescriptionsScreen()))),
                   Tile3D(icon: Icons.folder_shared_rounded, color: Tone.purple, label: tr('ملفي الطبي', 'My medical file'),
                       subtitle: tr('صور، فيديو، ملاحظات', 'Photos, videos, notes'),
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicalFileScreen()))),

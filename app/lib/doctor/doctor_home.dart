@@ -15,6 +15,7 @@ import 'clinics_screen.dart';
 import 'doctor_profile_screen.dart';
 import 'finance_screen.dart';
 import 'med_reviews_screen.dart';
+import 'rx_screens.dart';
 import 'patients_requests_screens.dart';
 import 'verification_screen.dart';
 
@@ -202,6 +203,15 @@ class _Dashboard extends StatelessWidget {
           Tile3D(icon: Icons.account_balance_wallet_rounded, color: Tone.green, label: tr('رصيدي اليومي', 'Daily balance'),
               subtitle: tr('الدخل والمصروفات', 'Income & expenses'),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FinanceScreen()))),
+          Tile3D(icon: Icons.receipt_long_rounded, color: look.accent, label: tr('الروشتة', 'Prescription'),
+              subtitle: tr('اكتب واطبع وابعت', 'Write, print, send'),
+              onTap: () {
+                if (!verified) {
+                  showMessage(context, tr('متاح بعد تفعيل حسابك.', 'Available after activation.'), error: true);
+                  return;
+                }
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorRxScreen()));
+              }),
           Tile3D(icon: Icons.medication_liquid_rounded, color: Tone.purple, label: tr('أدوية للمراجعة', 'Medicines to review'),
               badge: data['reviews'] as int,
               subtitle: tr('صور أدوية من المرضى', 'Photos from patients'),

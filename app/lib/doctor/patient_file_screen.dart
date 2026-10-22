@@ -8,6 +8,7 @@ import '../core/widgets.dart';
 import '../patient/meds_screen.dart';
 import '../patient/medical_file_screen.dart';
 import 'case_plan_screens.dart';
+import 'rx_screens.dart';
 
 /// Doctor / assistant view of one linked patient: medical file + treatment, and account actions.
 class PatientFileScreen extends StatelessWidget {
@@ -54,6 +55,9 @@ class PatientFileScreen extends StatelessWidget {
         (Tab(icon: const Icon(Icons.medication_rounded), text: tr('العلاج', 'Treatment')),
             MedsScreen(patientId: _id, canPrescribe: true, embedded: true)),
       ],
+      if (medical)
+        (Tab(icon: const Icon(Icons.receipt_long_rounded), text: tr('الروشتات', 'Prescriptions')),
+            PrescriptionsView(patientId: _id, patientName: patient['patient_name'] as String?)),
       if (followups)
         (Tab(icon: const Icon(Icons.event_repeat_rounded), text: tr('المتابعة', 'Follow-ups')),
             FollowupsView(patientId: _id, patientName: patient['patient_name'] as String?, patientPhone: patient['phone'] as String?)),

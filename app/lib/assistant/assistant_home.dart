@@ -11,6 +11,7 @@ import '../doctor/add_patient_screen.dart';
 import '../doctor/bookings_screen.dart';
 import '../doctor/finance_screen.dart';
 import '../doctor/med_reviews_screen.dart';
+import '../doctor/rx_screens.dart';
 import '../doctor/patients_requests_screens.dart';
 
 /// Home for a doctor's assistant: only the tools the doctor allowed.
@@ -40,6 +41,9 @@ class AssistantHome extends StatelessWidget {
           if (can('finance'))
             Tile3D(icon: Icons.account_balance_wallet_rounded, color: Tone.green, label: tr('رصيد العيادة', 'Clinic balance'),
                 subtitle: tr('الدخل والمصروفات', 'Income & expenses'), onTap: () => open(const FinanceScreen())),
+          if (can('medical'))
+            Tile3D(icon: Icons.receipt_long_rounded, color: look.accent, label: tr('الروشتات', 'Prescriptions'),
+                onTap: () => open(const DoctorRxScreen())),
           if (can('medical'))
             Tile3D(icon: Icons.medication_liquid_rounded, color: Tone.purple, label: tr('أدوية للمراجعة', 'Medicines to review'),
                 onTap: () => open(const MedReviewsScreen())),
