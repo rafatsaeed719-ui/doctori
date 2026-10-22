@@ -65,13 +65,65 @@ class Reminders {
     return '$h12:$min ${h < 12 ? tr('ص', 'AM') : tr('م', 'PM')}';
   }
 
-  /// Cancels everything and schedules reminders for active medicines with reminders on.
+  static List<Map<String, dynamic>>? _meds;
+  static List<Map<String, dynamic>>? _followups;
+
+  /// Updates the medicines list and rebuilds all reminders.
   static Future<void> sync(List<Map<String, dynamic>> meds) async {
+    _meds = meds;
+    await _rebuild();
+  }
+
+  /// Updates the doctor's follow-up appointments and rebuilds all reminders.
+  static Future<void> syncFollowups(List<Map<String, dynamic>> followups) async {
+    _followups = followups;
+    await _rebuild();
+  }
+
+  static Future<void> _chain = Future.value();
+
+  /// Rebuilds one at a time, so two quick updates never interleave.
+  static Future<void> _rebuild() => _chain = _chain.then((_) => _doRebuild()).catchError((Object e) {
+        debugPrint('Reminders rebuild failed: $e');
+      });
+
+  static Future<void> _doRebuild() async {
     await init();
     if (!_ready) return;
     try {
       await _plugin.cancelAll();
     } catch (_) {}
+    await _scheduleFollowups();
+    await _scheduleMeds(_meds ?? const []);
+  }
+
+  /// A reminder the day before (8 PM) and 2 hours before each upcoming follow-up.
+  static Future<void> _scheduleFollowups() async {
+    final now = tz.TZDateTime.now(tz.local);
+    var id = 5000;
+    for (final f in _followups ?? const <Map<String, dynamic>>[]) {
+      if (f['status'] != 'scheduled') continue;
+      final at = DateTime.tryParse('${f['scheduled_at']}');
+      if (at == null) continue;
+      final when = tz.TZDateTime.from(at, tz.local);
+      if (!when.isAfter(now)) continue;
+      final doctor = '${tr('د.', 'Dr.')} ${f['doctor_name'] ?? ''}';
+      final time = formatMinutes(when.hour * 60 + when.minute);
+      final dayBefore = tz.TZDateTime(tz.local, when.year, when.month, when.day - 1, 20);
+      final title = tr('ميعاد متابعة 📅', 'Follow-up appointment 📅');
+      if (dayBefore.isAfter(now) && id < 5400) {
+        await _schedule(id++, title, '${tr('بكرة الساعة', 'Tomorrow at')} $time — ${f['title']} ($doctor)', dayBefore,
+            repeatDaily: false);
+      }
+      final before = when.subtract(const Duration(hours: 2));
+      if (before.isAfter(now) && id < 5400) {
+        await _schedule(id++, title, '${tr('النهارده الساعة', 'Today at')} $time — ${f['title']} ($doctor)', before,
+            repeatDaily: false);
+      }
+    }
+  }
+
+  static Future<void> _scheduleMeds(List<Map<String, dynamic>> meds) async {
     final now = tz.TZDateTime.now(tz.local);
     final today = tz.TZDateTime(tz.local, now.year, now.month, now.day);
     var id = 1;

@@ -122,3 +122,16 @@ class _NewPasswordFieldState extends State<NewPasswordField> {
         ),
       );
 }
+
+/// Opens WhatsApp with a ready message to an Egyptian mobile (any format), or tells the user the number is missing.
+Future<void> openWhatsApp(BuildContext context, String? phone, String text) async {
+  final p = normalizeEgPhone(phone ?? '');
+  if (p == null) {
+    showMessage(context, tr('رقم موبايل المريض مش متسجل أو غير صحيح.', 'The patient’s mobile number is missing or invalid.'),
+        error: true);
+    return;
+  }
+  final ok = await launchUrl(Uri.parse('https://wa.me/$p?text=${Uri.encodeComponent(text)}'),
+      mode: LaunchMode.externalApplication);
+  if (!ok && context.mounted) showMessage(context, tr('تعذر فتح واتساب', 'Could not open WhatsApp'), error: true);
+}

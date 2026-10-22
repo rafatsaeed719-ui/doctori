@@ -9,6 +9,8 @@ import '../core/supa.dart';
 import '../core/widgets.dart';
 import '../doctor/add_patient_screen.dart';
 import '../doctor/bookings_screen.dart';
+import '../doctor/finance_screen.dart';
+import '../doctor/med_reviews_screen.dart';
 import '../doctor/patients_requests_screens.dart';
 
 /// Home for a doctor's assistant: only the tools the doctor allowed.
@@ -35,6 +37,12 @@ class AssistantHome extends StatelessWidget {
             Tile3D(icon: Icons.people_alt_rounded, color: Tone.teal, label: tr('المرضى', 'Patients'),
                 subtitle: can('medical') ? tr('والملف الطبي', 'and medical files') : null,
                 onTap: () => open(const DoctorPatientsScreen())),
+          if (can('finance'))
+            Tile3D(icon: Icons.account_balance_wallet_rounded, color: Tone.green, label: tr('رصيد العيادة', 'Clinic balance'),
+                subtitle: tr('الدخل والمصروفات', 'Income & expenses'), onTap: () => open(const FinanceScreen())),
+          if (can('medical'))
+            Tile3D(icon: Icons.medication_liquid_rounded, color: Tone.purple, label: tr('أدوية للمراجعة', 'Medicines to review'),
+                onTap: () => open(const MedReviewsScreen())),
           if (can('add_patients'))
             Tile3D(icon: Icons.person_add_alt_1_rounded, color: Tone.green, label: tr('إضافة مريض', 'Add patient'),
                 onTap: () => open(const AddPatientScreen())),

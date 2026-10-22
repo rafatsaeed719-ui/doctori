@@ -7,6 +7,7 @@ import '../core/supa.dart';
 import '../core/widgets.dart';
 import '../patient/meds_screen.dart';
 import '../patient/medical_file_screen.dart';
+import 'case_plan_screens.dart';
 
 /// Doctor / assistant view of one linked patient: medical file + treatment, and account actions.
 class PatientFileScreen extends StatelessWidget {
@@ -46,8 +47,22 @@ class PatientFileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final medical = can('medical');
+    final followups = medical || can('bookings');
+    final tabs = <(Tab, Widget)>[
+      if (medical) ...[
+        (Tab(icon: const Icon(Icons.assignment_rounded), text: tr('الحالة', 'Case')), CasePlansView(patientId: _id)),
+        (Tab(icon: const Icon(Icons.medication_rounded), text: tr('العلاج', 'Treatment')),
+            MedsScreen(patientId: _id, canPrescribe: true, embedded: true)),
+      ],
+      if (followups)
+        (Tab(icon: const Icon(Icons.event_repeat_rounded), text: tr('المتابعة', 'Follow-ups')),
+            FollowupsView(patientId: _id, patientName: patient['patient_name'] as String?, patientPhone: patient['phone'] as String?)),
+      if (medical)
+        (Tab(icon: const Icon(Icons.folder_shared_rounded), text: tr('الملف الطبي', 'Medical file')),
+            MedicalFileScreen(patientId: _id, embedded: true)),
+    ];
     return DefaultTabController(
-      length: 2,
+      length: tabs.isEmpty ? 1 : tabs.length,
       child: Scaffold(
         appBar: AppBar(
           title: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -66,10 +81,10 @@ class PatientFileScreen extends StatelessWidget {
               ],
             ),
           ],
-          bottom: TabBar(tabs: [
-            Tab(icon: const Icon(Icons.folder_shared_rounded), text: tr('الملف الطبي', 'Medical file')),
-            Tab(icon: const Icon(Icons.medication_rounded), text: tr('العلاج', 'Treatment')),
-          ]),
+          bottom: tabs.isEmpty
+              ? null
+              : TabBar(isScrollable: tabs.length > 3, tabAlignment: tabs.length > 3 ? TabAlignment.start : null,
+                  tabs: [for (final t in tabs) t.$1]),
         ),
         body: Column(children: [
           Padding(
@@ -85,13 +100,10 @@ class PatientFileScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: !medical
+            child: tabs.isEmpty
                 ? EmptyView(icon: Icons.lock_outline, title: tr('مش مسموحلك تشوف الملف الطبي', 'No access to medical files'),
                     subtitle: tr('اطلب من الدكتور صلاحية «الملف الطبي والعلاج».', 'Ask the doctor for the medical permission.'))
-                : TabBarView(children: [
-                    MedicalFileScreen(patientId: _id, embedded: true),
-                    MedsScreen(patientId: _id, canPrescribe: true, embedded: true),
-                  ]),
+                : TabBarView(children: [for (final t in tabs) t.$2]),
           ),
         ]),
       ),

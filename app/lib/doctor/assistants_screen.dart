@@ -25,6 +25,8 @@ const _perms = [
       'يعمل حسابات مرضى جديدة برقم الموبايل', 'Creates patient accounts by mobile'),
   _Perm('medical', Icons.medication_rounded, Tone.purple, 'الملف الطبي والعلاج', 'Medical file & treatment',
       'يشوف ملفات المرضى ويكتب علاج باسمك — صلاحية حساسة', 'Sees medical files and prescribes in your name — sensitive'),
+  _Perm('finance', Icons.account_balance_wallet_rounded, Tone.amber, 'رصيد العيادة', 'Clinic balance',
+      'يسجل دخل الحالات والمصروفات ويشوف الرصيد', 'Records income and expenses and sees the balance'),
 ];
 
 class AssistantsScreen extends StatefulWidget {
@@ -115,8 +117,9 @@ class _AssistantFormState extends State<_AssistantForm> {
   Future<void> _save() async {
     if (_isNew && !_form.currentState!.validate()) return;
     final ok = await runBusy(context, () async {
+      String? assistantId = widget.existing?['assistant_id'] as String?;
       if (_isNew) {
-        await rpc('doctor_create_assistant', {
+        final r = await rpc('doctor_create_assistant', {
           'p_full_name': _name.text.trim(),
           'p_phone': normalizeEgPhone(_phone.text),
           'p_password': _password.text,
@@ -125,6 +128,7 @@ class _AssistantFormState extends State<_AssistantForm> {
           'p_add_patients': _on['add_patients'],
           'p_medical': _on['medical'],
         });
+        assistantId = (r as Map)['assistant_id'] as String?;
       } else {
         await rpc('doctor_update_assistant', {
           'p_assistant': widget.existing!['assistant_id'],
@@ -133,6 +137,9 @@ class _AssistantFormState extends State<_AssistantForm> {
           'p_add_patients': _on['add_patients'],
           'p_medical': _on['medical'],
         });
+      }
+      if (assistantId != null && (_on['finance'] == true || !_isNew)) {
+        await rpc('set_assistant_finance', {'p_assistant': assistantId, 'p_on': _on['finance'] == true});
       }
     }, success: _isNew ? null : tr('تم حفظ الصلاحيات', 'Permissions saved'));
     if (!ok || !mounted) return;

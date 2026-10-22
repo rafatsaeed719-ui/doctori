@@ -13,6 +13,7 @@ import 'booking_screens.dart';
 import 'medical_file_screen.dart';
 import 'meds_screen.dart';
 import 'my_doctors_screen.dart';
+import 'my_plan_screen.dart';
 import 'my_requests_screen.dart';
 import 'search_screen.dart';
 
@@ -88,21 +89,28 @@ class _PatientDashboard extends StatelessWidget {
   const _PatientDashboard({required this.goTo});
   final void Function(int) goTo;
 
-  Future<(int, int, int, int)> _counts() async {
+  Future<(int, int, int, int, int)> _counts() async {
     final docs = await rpcList('patient_my_doctors');
     final reqs = await rpcList('patient_my_requests');
     final meds = ((await rpc('list_medications')) as List? ?? const [])
         .map((e) => Map<String, dynamic>.from(e as Map)).toList();
     final appts = (await rpc('patient_my_appointments')) as List? ?? const [];
-    // Keep phone reminders in step with the latest medicines (incl. new prescriptions).
+    var followups = const <Map<String, dynamic>>[];
+    try {
+      followups = await rpcList('patient_followups');
+    } catch (_) {/* older server */}
+    // Keep phone reminders in step with the latest medicines, prescriptions and follow-up dates.
+    Reminders.syncFollowups(followups);
     Reminders.sync(meds);
+    final nextFollowups = followups.where((f) => f['status'] == 'scheduled' &&
+        (DateTime.tryParse('${f['scheduled_at']}')?.isAfter(DateTime.now()) ?? false)).length;
     final activeMeds = meds.where((m) => m['is_active'] == true).length;
     final upcoming = appts.where((a) {
       final m = a as Map;
       return (m['status'] == 'pending' || m['status'] == 'confirmed') &&
           (DateTime.tryParse('${m['starts_at']}')?.isAfter(DateTime.now()) ?? false);
     }).length;
-    return (docs.length, reqs.where((r) => r['status'] == 'pending').length, activeMeds, upcoming);
+    return (docs.length, reqs.where((r) => r['status'] == 'pending').length, activeMeds, upcoming, nextFollowups);
   }
 
   String _greeting() {
@@ -124,7 +132,7 @@ class _PatientDashboard extends StatelessWidget {
         look: patientLook,
         calm: true,
         child: SafeArea(
-          child: FutureView<(int, int, int, int)>(
+          child: FutureView<(int, int, int, int, int)>(
             load: _counts,
             builder: (context, counts, reload) => RefreshList(
               onRefresh: reload,
@@ -198,6 +206,15 @@ class _PatientDashboard extends StatelessWidget {
                       subtitle: tr('${counts.$3} دوا • تذكير بالمواعيد', '${counts.$3} medicines • reminders'),
                       onTap: () async {
                         await Navigator.push(context, MaterialPageRoute(builder: (_) => const MedsScreen()));
+                        reload();
+                      }),
+                  Tile3D(icon: Icons.assignment_rounded, color: Tone.sky, label: tr('خطتي العلاجية', 'My treatment plan'),
+                      badge: counts.$5,
+                      subtitle: counts.$5 > 0
+                          ? tr('${counts.$5} ميعاد متابعة', '${counts.$5} follow-ups')
+                          : tr('المشكلة والهدف والمتابعة', 'Problem, goal, follow-ups'),
+                      onTap: () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPlanScreen()));
                         reload();
                       }),
                   Tile3D(icon: Icons.folder_shared_rounded, color: Tone.purple, label: tr('ملفي الطبي', 'My medical file'),

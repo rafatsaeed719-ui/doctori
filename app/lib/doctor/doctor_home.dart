@@ -13,6 +13,8 @@ import 'assistants_screen.dart';
 import 'bookings_screen.dart';
 import 'clinics_screen.dart';
 import 'doctor_profile_screen.dart';
+import 'finance_screen.dart';
+import 'med_reviews_screen.dart';
 import 'patients_requests_screens.dart';
 import 'verification_screen.dart';
 
@@ -75,7 +77,12 @@ class _Dashboard extends StatelessWidget {
     final verifs = await supa.from('doctor_verifications').select('id, decision').eq('doctor_id', myId);
     final requests = await rpcList('doctor_incoming_requests');
     final patients = await rpcList('doctor_my_patients');
+    var reviews = 0;
+    try {
+      reviews = (await rpcList('doctor_pending_med_reviews')).length;
+    } catch (_) {/* older server: no reviews yet */}
     return {
+      'reviews': reviews,
       'doctor': doc,
       'clinics': clinics.length,
       'submitted': verifs.isNotEmpty,
@@ -192,6 +199,16 @@ class _Dashboard extends StatelessWidget {
           ],
         ],
         TileGrid(children: [
+          Tile3D(icon: Icons.account_balance_wallet_rounded, color: Tone.green, label: tr('رصيدي اليومي', 'Daily balance'),
+              subtitle: tr('الدخل والمصروفات', 'Income & expenses'),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FinanceScreen()))),
+          Tile3D(icon: Icons.medication_liquid_rounded, color: Tone.purple, label: tr('أدوية للمراجعة', 'Medicines to review'),
+              badge: data['reviews'] as int,
+              subtitle: tr('صور أدوية من المرضى', 'Photos from patients'),
+              onTap: () async {
+                await Navigator.push(context, MaterialPageRoute(builder: (_) => const MedReviewsScreen()));
+                reload();
+              }),
           Tile3D(icon: Icons.event_note_rounded, color: Tone.indigo, label: tr('الحجوزات', 'Bookings'),
               subtitle: tr('التقويم والكشوفات', 'Calendar & visits'),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BookingsScreen()))),
@@ -200,7 +217,7 @@ class _Dashboard extends StatelessWidget {
               onTap: () => goTo(1)),
           Tile3D(icon: Icons.people_alt_rounded, color: Tone.teal, label: tr('مرضاي', 'My patients'),
               subtitle: tr('${data['patients']} مريض', '${data['patients']} patients'), onTap: () => goTo(2)),
-          Tile3D(icon: Icons.person_add_alt_1_rounded, color: Tone.green, label: tr('إضافة مريض', 'Add patient'),
+          Tile3D(icon: Icons.person_add_alt_1_rounded, color: Tone.teal, label: tr('إضافة مريض', 'Add patient'),
               subtitle: tr('برقم الموبايل', 'By mobile number'),
               onTap: () async {
                 if (!verified) {

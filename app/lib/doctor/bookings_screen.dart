@@ -8,6 +8,8 @@ import '../core/phone.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
 import '../patient/booking_screens.dart';
+import 'case_plan_screens.dart';
+import 'finance_screen.dart';
 
 const _monthsAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 const _monthsEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -28,12 +30,28 @@ class _BookingsScreenState extends State<BookingsScreen> {
   DateTime _month = DateTime(DateTime.now().year, DateTime.now().month);
   DateTime _selected = DateTime.now();
   int _key = 0;
+  Map<String, List<Map<String, dynamic>>> _followups = const {};
 
   Future<List<Map<String, dynamic>>> _load() async {
     final from = _month;
     final to = DateTime(_month.year, _month.month + 1, 0);
     final r = await rpc('doctor_appointments', {'p_from': _iso(from), 'p_to': _iso(to), 'p_doctor': actingDoctorId()});
+    final fus = <String, List<Map<String, dynamic>>>{};
+    try {
+      for (final f in await rpcList('doctor_followups', {'p_from': _iso(from), 'p_to': _iso(to), 'p_doctor': actingDoctorId()})) {
+        if (f['status'] == 'cancelled') continue;
+        fus.putIfAbsent(f['local_date'] as String, () => []).add(f);
+      }
+    } catch (_) {/* follow-ups are optional here */}
+    _followups = fus;
     return (r as List? ?? const []).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  Future<void> _followupStatus(Map<String, dynamic> f, String status) async {
+    final ok = await runBusy(context, () async {
+      await rpc('set_followup_status', {'p_id': f['id'], 'p_status': status});
+    }, success: tr('تم التحديث', 'Updated'));
+    if (ok) setState(() => _key++);
   }
 
   void _shiftMonth(int delta) => setState(() {
@@ -47,6 +65,19 @@ class _BookingsScreenState extends State<BookingsScreen> {
       await rpc('set_appointment_status', {'p_id': a['id'], 'p_status': status});
     }, success: tr('تم التحديث', 'Updated'));
     if (ok) setState(() => _key++);
+    if (ok && status == 'completed' && can('finance') && mounted) {
+      final add = await confirmDialog(context,
+          title: tr('تسجيل الكشف في رصيدك؟', 'Record the payment?'),
+          body: tr('تسجل اللي دفعه ${a['patient_name'] ?? ''} في «رصيدي اليومي».', 'Add what ${a['patient_name'] ?? ''} paid to your daily balance.'),
+          confirm: tr('تسجيل', 'Record'));
+      if (add && mounted) {
+        await incomeSheet(context,
+            day: DateTime.tryParse('${a['local_date']}'),
+            patientId: a['patient_id'] as String?,
+            patientName: a['patient_name'] as String?,
+            appointmentId: a['id'] as String?);
+      }
+    }
   }
 
   Future<void> _bookForPatient() async {
@@ -117,6 +148,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
             byDay.putIfAbsent(a['local_date'] as String, () => []).add(a);
           }
           final dayList = byDay[_iso(_selected)] ?? const [];
+          final dayFollowups = _followups[_iso(_selected)] ?? const [];
           final active = list.where((a) => a['status'] != 'cancelled').length;
           final pending = list.where((a) => a['status'] == 'pending').length;
           return RefreshList(onRefresh: reload, children: [
@@ -131,7 +163,10 @@ class _BookingsScreenState extends State<BookingsScreen> {
             _Calendar(
               month: _month,
               selected: _selected,
-              counts: {for (final e in byDay.entries) e.key: e.value.where((a) => a['status'] != 'cancelled').length},
+              counts: {
+                for (final k in {...byDay.keys, ..._followups.keys})
+                  k: (byDay[k] ?? const []).where((a) => a['status'] != 'cancelled').length + (_followups[k]?.length ?? 0),
+              },
               pendings: {for (final e in byDay.entries) e.key: e.value.where((a) => a['status'] == 'pending').length},
               onPrev: () => _shiftMonth(-1),
               onNext: () => _shiftMonth(1),
@@ -145,6 +180,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 child: Text(tr('مفيش حجوزات في اليوم ده.', 'No bookings this day.'), textAlign: TextAlign.center),
               ),
             for (final a in dayList) _DayItem(a: a, onStatus: (s) => _setStatus(a, s)),
+            if (dayFollowups.isNotEmpty) SectionTitle('${tr('مواعيد متابعة', 'Follow-ups')} (${dayFollowups.length})'),
+            for (final f in dayFollowups) _FollowupItem(f: f, onStatus: (s) => _followupStatus(f, s)),
           ]);
         },
       ),
@@ -337,6 +374,56 @@ class _DayItem extends StatelessWidget {
                   icon: const Icon(Icons.call),
                 ),
             ]),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _FollowupItem extends StatelessWidget {
+  const _FollowupItem({required this.f, required this.onStatus});
+  final Map<String, dynamic> f;
+  final ValueChanged<String> onStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color) = followupStatus(f['status'] as String?);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(color: Tone.purple.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
+                child: Text(hhmm12(f['local_time'] as String?),
+                    style: TextStyle(fontWeight: FontWeight.w900, color: darken(Tone.purple, 0.2))),
+              ),
+              const SizedBox(width: 10),
+              UserAvatar(url: f['patient_avatar'] as String?, name: f['patient_name'] as String?, radius: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(f['patient_name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w800)),
+                  Text('🔁 ${f['title'] ?? ''}', style: const TextStyle(fontSize: 12.5)),
+                ]),
+              ),
+              StatusChip(label, color: color),
+            ]),
+            if (f['status'] == 'scheduled')
+              Wrap(spacing: 6, children: [
+                TextButton(onPressed: () => onStatus('done'), child: Text(tr('تمت', 'Done'))),
+                TextButton(onPressed: () => onStatus('missed'), child: Text(tr('لم يحضر', 'Missed'))),
+                IconButton(
+                  tooltip: tr('تذكير على واتساب', 'WhatsApp reminder'),
+                  onPressed: () => openWhatsApp(context, f['patient_phone'] as String?,
+                      followupMessage(f, patientName: f['patient_name'] as String?)),
+                  icon: const Icon(Icons.chat_rounded, color: Color(0xFF25D366)),
+                ),
+              ]),
           ]),
         ),
       ),

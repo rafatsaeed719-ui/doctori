@@ -130,7 +130,8 @@ def build():
         for n in ("0002_phase1_app_api.sql", "0003_phase1_storage.sql", "0004_accounts_admin.sql",
                   "0005_avatars.sql", "0006_avatars_in_lists.sql",
                   "0007_avatar_read.sql", "0008_doctor_activation.sql",
-                  "0009_care_bookings_assistants.sql", "0010_medical_storage.sql")
+                  "0009_care_bookings_assistants.sql", "0010_medical_storage.sql",
+                  "0011_plans_followups_med_review.sql", "0012_doctor_finance.sql")
     ) + BACKFILL
     out = ROOT / "setup"
     (out / "part1.sql").write_text(p1, encoding="utf-8")
