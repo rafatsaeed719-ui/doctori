@@ -1,0 +1,58 @@
+name: Build Doctori web
+
+# Builds the app for the browser and publishes it on GitHub Pages:
+#   https://rafatsaeed719-ui.github.io/doctori/
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - ".github/workflows/build-web.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: web
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate web project
+        run: |
+          flutter create --platforms=web --org com.doctori --project-name doctori .
+          rm -rf test
+          cp assets/logo.png web/favicon.png
+          for s in 192 512; do cp assets/logo.png web/icons/Icon-$s.png; cp assets/logo.png web/icons/Icon-maskable-$s.png; done
+          sed -i 's/"name": "doctori"/"name": "دكتوري"/; s/"short_name": "doctori"/"short_name": "دكتوري"/' web/manifest.json
+          sed -i 's#<title>doctori</title>#<title>دكتوري</title>#' web/index.html
+
+      - name: Build
+        run: |
+          flutter pub get
+          flutter build web --release --base-href /doctori/ --dart-define-from-file=env/doctori.json > build.log 2>&1 || {
+            cat build.log
+            grep -E "Error|error:" build.log | head -30 | while read -r l; do echo "::error::$l"; done
+            exit 1; }
+          touch build/web/.nojekyll
+          cp build/web/index.html build/web/404.html
+
+      - name: Publish to GitHub Pages (gh-pages branch)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: app/build/web
+          force_orphan: true
