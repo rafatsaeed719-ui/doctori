@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../common/reviews.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../common/map_widgets.dart';
@@ -95,6 +97,8 @@ class _DoctorBody extends StatelessWidget {
           SectionTitle(tr('العيادات ومواعيد العمل', 'Clinics & hours')),
           if (clinics.isEmpty) Text(tr('لم يضف الطبيب عيادات بعد.', 'No clinics added yet.')),
           for (final c in clinics) _ClinicCard(c: c),
+          if (d['id'] != null || d['doctor_id'] != null)
+            ReviewsSection(doctorId: (d['id'] ?? d['doctor_id']) as String, doctorName: d['full_name'] as String?),
           const SizedBox(height: 12),
           InfoBanner(
             icon: Icons.info_outline,

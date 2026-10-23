@@ -15,6 +15,10 @@ import 'meds_screen.dart';
 import 'my_doctors_screen.dart';
 import 'my_plan_screen.dart';
 import '../common/announcements.dart';
+import '../common/chat_screens.dart';
+import '../common/health_screens.dart';
+import '../common/notifications.dart';
+import '../doctor/queue_screen.dart';
 import '../common/offers_screens.dart';
 import '../doctor/rx_screens.dart';
 import 'my_requests_screen.dart';
@@ -161,10 +165,7 @@ class _PatientDashboard extends StatelessWidget {
                               Text(name, style: tt.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
                             ]),
                           ),
-                          ValueListenableBuilder<String>(
-                            valueListenable: AppState.appName,
-                            builder: (_, n, __) => Image.asset('assets/logo.png', width: 40, height: 40, semanticLabel: n),
-                          ),
+                          const NotificationBell(),
                         ]),
                         const SizedBox(height: 14),
                         Text(
@@ -197,6 +198,7 @@ class _PatientDashboard extends StatelessWidget {
                   ]),
                 ),
                 const SizedBox(height: 14),
+                const MyQueueCard(),
                 const AnnouncementsStrip(),
                 const OffersStrip(),
                 TileGrid(children: [
@@ -222,6 +224,12 @@ class _PatientDashboard extends StatelessWidget {
                         await Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPlanScreen()));
                         reload();
                       }),
+                  Tile3D(icon: Icons.chat_rounded, color: Tone.sky, label: tr('رسائلي', 'My messages'),
+                      subtitle: tr('كلّم العيادة', 'Message your clinic'),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatThreadsScreen()))),
+                  Tile3D(icon: Icons.health_and_safety_rounded, color: Tone.red, label: tr('بياناتي الطبية', 'My health data'),
+                      subtitle: tr('الفصيلة والحساسية', 'Blood type & allergies'),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HealthForm()))),
                   Tile3D(icon: Icons.local_offer_rounded, color: Tone.red, label: tr('عروض الأطباء', 'Doctors’ offers'),
                       subtitle: tr('عمليات وكشف وخدمات', 'Operations, visits, services'),
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OffersScreen()))),

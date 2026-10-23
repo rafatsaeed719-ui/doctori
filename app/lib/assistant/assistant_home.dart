@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../common/announcements.dart';
+import '../common/chat_screens.dart';
+import '../common/notifications.dart';
+import '../doctor/inventory_screen.dart';
+import '../doctor/queue_screen.dart';
+import '../doctor/reports_screen.dart';
 import '../common/offers_screens.dart';
 import '../common/settings_screen.dart';
 import '../core/avatar.dart';
@@ -30,6 +35,18 @@ class AssistantHome extends StatelessWidget {
         final tt = Theme.of(context).textTheme;
         void open(Widget w) => Navigator.push(context, MaterialPageRoute(builder: (_) => w));
         final tiles = <Widget>[
+          if (can('bookings'))
+            Tile3D(icon: Icons.campaign_rounded, color: Tone.orange, label: tr('دور الانتظار', 'Waiting queue'),
+                onTap: () => open(const QueueScreen())),
+          if (can('patients') || can('bookings'))
+            Tile3D(icon: Icons.chat_rounded, color: Tone.sky, label: tr('رسائل المرضى', 'Patient messages'),
+                onTap: () => open(const ChatThreadsScreen(staff: true))),
+          if (can('bookings') || can('finance'))
+            Tile3D(icon: Icons.inventory_2_rounded, color: Tone.teal, label: tr('مخزن العيادة', 'Clinic stock'),
+                onTap: () => open(const InventoryScreen())),
+          if (can('bookings') || can('finance'))
+            Tile3D(icon: Icons.insights_rounded, color: Tone.indigo, label: tr('التقارير', 'Reports'),
+                onTap: () => open(const ReportsScreen())),
           if (can('bookings'))
             Tile3D(icon: Icons.event_note_rounded, color: Tone.blue, label: tr('الحجوزات', 'Bookings'),
                 subtitle: tr('التقويم والتأكيد', 'Calendar & confirm'), onTap: () => open(const BookingsScreen())),
@@ -80,6 +97,7 @@ class AssistantHome extends StatelessWidget {
                             style: tt.bodyMedium?.copyWith(color: darken(look.accent, 0.1), fontWeight: FontWeight.w700)),
                       ]),
                     ),
+                    const NotificationBell(),
                   ]),
                 ),
                 const SizedBox(height: 16),

@@ -87,6 +87,12 @@ String friendlyError(Object e) {
     'code already used': ('الكود ده اتستخدم قبل كده.', 'This code was already used.'),
     'invalid phone number': ('رقم الموبايل غير صحيح. اكتب رقم مصري 11 رقم.', 'Invalid mobile number. Use an 11-digit Egyptian number.'),
     'account already exists': ('فيه حساب مسجل بالرقم أو الإيميل ده بالفعل.', 'An account with this mobile or email already exists.'),
+    'not enough stock': ('الكمية في المخزن مش كفاية.', 'Not enough in stock.'),
+    'check-in is only for today': ('تسجيل الوصول متاح يوم الحجز بس.', 'Check-in is only on the booking day.'),
+    'too many messages': ('رسائل كتير ورا بعض. استنى دقيقة.', 'Too many messages. Wait a minute.'),
+    'only patients of this doctor can review': ('التقييم متاح بعد ما تكشف عند الدكتور.', 'You can rate after a visit.'),
+    'daily offer limit reached': ('وصلت لحد 5 إعلانات في اليوم.', 'Daily limit of 5 offers reached.'),
+    'quantity is required': ('اكتب الكمية.', 'Enter the quantity.'),
     'payload too large': ('الملف أكبر من الحد المسموح (10 ميجا).', 'File is larger than the 10 MB limit.'),
     'mime type': ('نوع الملف غير مسموح. المسموح: JPG وPNG وPDF.', 'File type not allowed. Use JPG, PNG or PDF.'),
   };

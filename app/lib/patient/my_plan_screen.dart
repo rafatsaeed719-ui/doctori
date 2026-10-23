@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/l10n.dart';
 import '../doctor/case_plan_screens.dart';
+import '../doctor/surgery_screens.dart';
 
 /// Patient: my treatment plans (problem, where, goal, measurements, course) and follow-up dates.
 class MyPlanScreen extends StatelessWidget {
@@ -11,7 +12,7 @@ class MyPlanScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       initialIndex: initialTab,
       child: Scaffold(
         appBar: AppBar(
@@ -19,9 +20,10 @@ class MyPlanScreen extends StatelessWidget {
           bottom: TabBar(tabs: [
             Tab(icon: const Icon(Icons.assignment_rounded), text: tr('حالتي وخطتي', 'My plan')),
             Tab(icon: const Icon(Icons.event_repeat_rounded), text: tr('مواعيد المتابعة', 'Follow-ups')),
+            Tab(icon: const Icon(Icons.local_hospital_rounded), text: tr('العمليات', 'Surgeries')),
           ]),
         ),
-        body: const TabBarView(children: [CasePlansView(), FollowupsView()]),
+        body: const TabBarView(children: [CasePlansView(), FollowupsView(), SurgeriesView()]),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../admin/admin_home.dart';
 import '../assistant/assistant_home.dart';
+import '../common/notifications.dart';
 import '../core/l10n.dart';
 import '../core/lookups.dart';
 import '../core/supa.dart';
@@ -29,7 +30,10 @@ class _AuthGateState extends State<AuthGate> {
     super.initState();
     AppState.loadAppName();
     _sub = supa.auth.onAuthStateChange.listen((data) {
-      if (data.event == AuthChangeEvent.signedOut) AppState.context = const {};
+      if (data.event == AuthChangeEvent.signedOut) {
+        AppState.context = const {};
+        Notifs.stop();
+      }
       if (data.event == AuthChangeEvent.passwordRecovery) {
         navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const NewPasswordScreen()));
       }
@@ -67,6 +71,7 @@ class _RoleRouterState extends State<RoleRouter> {
     AppState.context = ctx;
     final locale = ctx['locale'];
     if (locale is String) L10n.set(locale);
+    Notifs.start();
     return ctx;
   }
 

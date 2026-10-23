@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../common/announcements.dart';
+import '../common/chat_screens.dart';
+import '../common/notifications.dart';
+import '../common/reviews.dart';
+import 'inventory_screen.dart';
+import 'queue_screen.dart';
+import 'reports_screen.dart';
 import '../common/offers_screens.dart';
 import '../common/settings_screen.dart';
 import '../core/avatar.dart';
@@ -179,6 +185,7 @@ class _Dashboard extends StatelessWidget {
                 ]),
               ]),
             ),
+            const NotificationBell(),
           ]),
         ),
         const SizedBox(height: 14),
@@ -203,6 +210,11 @@ class _Dashboard extends StatelessWidget {
           ],
         ],
         TileGrid(children: [
+          Tile3D(icon: Icons.campaign_rounded, color: Tone.orange, label: tr('دور الانتظار', 'Waiting queue'),
+              subtitle: tr('نادي اللي عليه الدور', 'Call the next patient'),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QueueScreen()))),
+          Tile3D(icon: Icons.chat_rounded, color: Tone.sky, label: tr('رسائل المرضى', 'Patient messages'),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatThreadsScreen(staff: true)))),
           Tile3D(icon: Icons.account_balance_wallet_rounded, color: Tone.green, label: tr('رصيدي اليومي', 'Daily balance'),
               subtitle: tr('الدخل والمصروفات', 'Income & expenses'),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FinanceScreen()))),
@@ -262,6 +274,14 @@ class _Dashboard extends StatelessWidget {
                 }
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const AssistantsScreen()));
               }),
+          Tile3D(icon: Icons.insights_rounded, color: Tone.indigo, label: tr('التقارير', 'Reports'),
+              subtitle: tr('زيارات وخدمات وفلوس', 'Visits, services, money'),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()))),
+          Tile3D(icon: Icons.inventory_2_rounded, color: Tone.teal, label: tr('مخزن العيادة', 'Clinic stock'),
+              subtitle: tr('المستلزمات والكميات', 'Supplies & quantities'),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InventoryScreen()))),
+          Tile3D(icon: Icons.star_rounded, color: Tone.amber, label: tr('تقييماتي', 'My reviews'),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyReviewsScreen()))),
           Tile3D(icon: Icons.verified_rounded, color: Tone.purple, label: tr('التوثيق', 'Verification'),
               subtitle: verified ? tr('موثّق', 'Verified') : tr('المستندات', 'Documents'), onTap: openVerification),
         ]),

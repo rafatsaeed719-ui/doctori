@@ -65,6 +65,27 @@ class Reminders {
     return '$h12:$min ${h < 12 ? tr('ص', 'AM') : tr('م', 'PM')}';
   }
 
+  static const _alertDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'clinic_updates',
+      'تحديثات العيادة',
+      channelDescription: 'الحجوزات والرسائل والروشتات والدور',
+      importance: Importance.max,
+      priority: Priority.high,
+    ),
+  );
+
+  /// Shows a notification right now (used for live updates while the app is running).
+  static Future<void> showNow(int id, String title, String body) async {
+    await init();
+    if (!_ready) return;
+    try {
+      await _plugin.show(id: 100000 + (id % 800000), title: title, body: body, notificationDetails: _alertDetails);
+    } catch (e) {
+      debugPrint('showNow failed: $e');
+    }
+  }
+
   static List<Map<String, dynamic>>? _meds;
   static List<Map<String, dynamic>>? _followups;
 
@@ -91,7 +112,7 @@ class Reminders {
     await init();
     if (!_ready) return;
     try {
-      await _plugin.cancelAll();
+      await _plugin.cancelAllPendingNotifications();
     } catch (_) {}
     await _scheduleFollowups();
     await _scheduleMeds(_meds ?? const []);

@@ -9,6 +9,9 @@ import '../patient/meds_screen.dart';
 import '../patient/medical_file_screen.dart';
 import 'case_plan_screens.dart';
 import 'rx_screens.dart';
+import 'surgery_screens.dart';
+import '../common/chat_screens.dart';
+import '../common/health_screens.dart';
 
 /// Doctor / assistant view of one linked patient: medical file + treatment, and account actions.
 class PatientFileScreen extends StatelessWidget {
@@ -58,6 +61,8 @@ class PatientFileScreen extends StatelessWidget {
       if (medical)
         (Tab(icon: const Icon(Icons.receipt_long_rounded), text: tr('الروشتات', 'Prescriptions')),
             PrescriptionsView(patientId: _id, patientName: patient['patient_name'] as String?)),
+      if (medical)
+        (Tab(icon: const Icon(Icons.local_hospital_rounded), text: tr('العمليات', 'Surgeries')), SurgeriesView(patientId: _id)),
       if (followups)
         (Tab(icon: const Icon(Icons.event_repeat_rounded), text: tr('المتابعة', 'Follow-ups')),
             FollowupsView(patientId: _id, patientName: patient['patient_name'] as String?, patientPhone: patient['phone'] as String?)),
@@ -75,6 +80,13 @@ class PatientFileScreen extends StatelessWidget {
             Flexible(child: Text(patient['patient_name'] ?? '', overflow: TextOverflow.ellipsis)),
           ]),
           actions: [
+            if (can('patients') || can('bookings'))
+              IconButton(
+                tooltip: tr('رسائل', 'Messages'),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(
+                    doctorId: actingDoctorId(), patientId: _id, title: patient['patient_name'] as String? ?? ''))),
+                icon: const Icon(Icons.chat_rounded),
+              ),
             PopupMenuButton<String>(
               onSelected: (v) => v == 'password' ? _resetPassword(context) : _endCare(context),
               itemBuilder: (c) => [
@@ -103,6 +115,8 @@ class PatientFileScreen extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
+          if (medical)
+            Padding(padding: const EdgeInsets.fromLTRB(12, 8, 12, 0), child: HealthCard(patientId: _id)),
           Expanded(
             child: tabs.isEmpty
                 ? EmptyView(icon: Icons.lock_outline, title: tr('مش مسموحلك تشوف الملف الطبي', 'No access to medical files'),

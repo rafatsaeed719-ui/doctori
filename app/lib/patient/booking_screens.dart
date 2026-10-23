@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../common/reviews.dart';
+
 import '../common/map_widgets.dart';
 import '../core/avatar.dart';
 import '../core/l10n.dart';
@@ -253,6 +255,8 @@ class _AppointmentCard extends StatelessWidget {
     final (label, color) = appointmentStatus(a['status'] as String?);
     final d = DateTime.tryParse('${a['local_date']}');
     final lat = (a['lat'] as num?)?.toDouble(), lng = (a['lng'] as num?)?.toDouble();
+    final now = DateTime.now();
+    final isToday = d != null && d.year == now.year && d.month == now.month && d.day == now.day;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Card(
@@ -282,6 +286,29 @@ class _AppointmentCard extends StatelessWidget {
               ),
               StatusChip(label, color: color),
             ]),
+            if (isToday && (a['status'] == 'pending' || a['status'] == 'confirmed'))
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44), backgroundColor: Tone.teal),
+                  onPressed: () async {
+                    final ok = await runBusy(context, () async => rpc('queue_checkin', {'p_appointment': a['id']}),
+                        success: tr('اتسجل وصولك ✓ هتلاقي رقمك في الصفحة الرئيسية', 'Checked in ✓ — your number is on the home screen'));
+                    if (ok) onChanged();
+                  },
+                  icon: const Icon(Icons.where_to_vote_rounded),
+                  label: Text(tr('وصلت العيادة', 'I have arrived')),
+                ),
+              ),
+            if (a['status'] == 'completed' && a['doctor_id'] != null)
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: TextButton.icon(
+                  onPressed: () => rateDoctorDialog(context, a['doctor_id'] as String, doctorName: a['doctor_name'] as String?),
+                  icon: const Icon(Icons.star_rounded, color: Tone.amber),
+                  label: Text(tr('قيّم الزيارة', 'Rate visit')),
+                ),
+              ),
             if (canCancel || (lat != null && lng != null))
               Row(children: [
                 if (lat != null && lng != null)
