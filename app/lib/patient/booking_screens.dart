@@ -26,10 +26,14 @@ String hhmm12(String? t) => formatTime(t == null ? null : '$t:00');
 
 /// Pick clinic → day → free time. Patients book for themselves; staff pass [patientId] to book for a linked patient.
 class BookingScreen extends StatefulWidget {
-  const BookingScreen({super.key, required this.doctor, this.patientId, this.patientName});
+  const BookingScreen({super.key, required this.doctor, this.patientId, this.patientName, this.initialNote, this.offerId});
   final Map<String, dynamic> doctor; // from get_doctor_public (has clinics with hours)
   final String? patientId;
   final String? patientName;
+
+  /// Booking from a doctor's offer: the note mentions the offer and the booking is counted for it.
+  final String? initialNote;
+  final String? offerId;
   @override
   State<BookingScreen> createState() => _BookingScreenState();
 }
@@ -41,7 +45,7 @@ class _BookingScreenState extends State<BookingScreen> {
   late DateTime _day;
   Future<List<Map<String, dynamic>>>? _slots;
   String? _picked;
-  final _note = TextEditingController();
+  late final _note = TextEditingController(text: widget.initialNote);
 
   @override
   void initState() {
@@ -79,6 +83,9 @@ class _BookingScreenState extends State<BookingScreen> {
       });
     });
     if (!ok || !mounted) return;
+    if (widget.offerId != null) {
+      rpc('offer_event', {'p_id': widget.offerId, 'p_event': 'booking'}).catchError((_) => null);
+    }
     await showDialog<void>(
       context: context,
       builder: (c) => AlertDialog(

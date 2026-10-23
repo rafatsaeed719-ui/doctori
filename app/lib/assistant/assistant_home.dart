@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../common/announcements.dart';
+import '../common/offers_screens.dart';
 import '../common/settings_screen.dart';
 import '../core/avatar.dart';
 import '../core/backgrounds.dart';
@@ -38,6 +40,9 @@ class AssistantHome extends StatelessWidget {
             Tile3D(icon: Icons.people_alt_rounded, color: Tone.teal, label: tr('المرضى', 'Patients'),
                 subtitle: can('medical') ? tr('والملف الطبي', 'and medical files') : null,
                 onTap: () => open(const DoctorPatientsScreen())),
+          if (can('bookings'))
+            Tile3D(icon: Icons.campaign_rounded, color: Tone.red, label: tr('إعلانات العيادة', 'Clinic offers'),
+                onTap: () => open(const DoctorOffersScreen())),
           if (can('finance'))
             Tile3D(icon: Icons.account_balance_wallet_rounded, color: Tone.green, label: tr('رصيد العيادة', 'Clinic balance'),
                 subtitle: tr('الدخل والمصروفات', 'Income & expenses'), onTap: () => open(const FinanceScreen())),
@@ -78,6 +83,7 @@ class AssistantHome extends StatelessWidget {
                   ]),
                 ),
                 const SizedBox(height: 16),
+                const AnnouncementsStrip(),
                 if (of == null)
                   InfoBanner(icon: Icons.link_off, text: tr('الحساب ده مش مربوط بطبيب حالياً.', 'This account is not linked to a doctor.'))
                 else if (of['doctor_status'] != 'verified')

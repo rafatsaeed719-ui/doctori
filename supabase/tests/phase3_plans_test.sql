@@ -161,6 +161,46 @@ select t.ok(jsonb_array_length(list_prescriptions(null, 'eeeeeeee-eeee-eeee-eeee
 select set_config('request.jwt.claim.sub', 'dddddddd-dddd-dddd-dddd-dddddddddddd', false);
 select t.ok((select count(*) from prescriptions) = 0, 'X12 other doctors see nothing');
 
+-- ---------- عروض الأطباء + إعلانات الإدارة ----------
+select set_config('request.jwt.claim.sub', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', false);
+create temp table of1 as select save_offer(null, 'عملية الغضروف بالمنظار', 'operation', 'خصم لأول 10 حالات', 15000, 20000) as id;
+select save_offer(null, 'كشف مخفض', 'visit_price', null, 150, 300, null, current_date - 1);
+select t.ok((select id from of1) is not null, 'O01 verified doctor posts an offer');
+select t.fails($$insert into doctor_offers (doctor_id, title) values (auth.uid(), 'direct')$$, 'O02 no direct writes');
+
+select set_config('request.jwt.claim.sub', 'f3f3f3f3-0000-0000-0000-000000000003', false);
+select t.ok(jsonb_array_length(list_offers(null, null, 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee')) = 1,
+            'O03 every patient sees active offers (expired one hidden)');
+select offer_event((select id from of1), 'view');
+select offer_event((select id from of1), 'booking');
+select t.fails($$select save_offer(null, 'patient offer')$$, 'O04 patients cannot post offers');
+
+select set_config('request.jwt.claim.sub', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', false);
+select t.ok((select (o->>'views')::int = 1 and (o->>'bookings')::int = 1
+             from jsonb_array_elements(list_offers(null, null, null, true)) o where o->>'id' = (select id::text from of1)),
+            'O05 doctor sees views and bookings of their offer');
+select t.ok(jsonb_array_length(list_offers(null, null, null, true)) = 2, 'O06 doctor sees own offers incl. expired');
+
+select set_config('request.jwt.claim.sub', 'dddddddd-dddd-dddd-dddd-dddddddddddd', false);
+select t.fails(format('select delete_offer(%L)', (select id from of1)), 'O07 other doctors cannot delete it');
+
+select set_config('request.jwt.claim.sub', 'cccccccc-cccc-cccc-cccc-cccccccccccc', false);
+select admin_hide_offer((select id from of1), true);
+create temp table an1 as select admin_save_announcement(null, 'تحديث جديد للأطباء', 'جربوا الروشتة', 'doctors') as id;
+select admin_save_announcement(null, 'نصيحة لكل المرضى', null, 'patients');
+select t.ok(jsonb_array_length(admin_list_announcements()) = 2, 'A01 admin posts announcements');
+
+select set_config('request.jwt.claim.sub', 'f3f3f3f3-0000-0000-0000-000000000003', false);
+select t.ok(jsonb_array_length(list_offers(null, null, 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee')) = 0, 'O08 hidden offer disappears for patients');
+select t.ok(jsonb_array_length(my_announcements()) = 1 and my_announcements()->0->>'title' = 'نصيحة لكل المرضى',
+            'A02 patients see only patient announcements');
+select dismiss_announcement((my_announcements()->0->>'id')::uuid);
+select t.ok(jsonb_array_length(my_announcements()) = 0, 'A03 closed announcement stays closed');
+select t.fails($$select admin_save_announcement(null, 'hack')$$, 'A04 only the admin posts announcements');
+
+select set_config('request.jwt.claim.sub', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', false);
+select t.ok(my_announcements()->0->>'title' = 'تحديث جديد للأطباء', 'A05 doctors see doctor announcements');
+
 reset role;
 insert into auth.users (id, email, encrypted_password) values ('abababab-0000-0000-0000-00000000000a', 'newdoc@test.com', 'x');
 select t.ok((select email_confirmed_at is not null from auth.users where email = 'newdoc@test.com'), 'E01 email sign-ups are confirmed automatically');

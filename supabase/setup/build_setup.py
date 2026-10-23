@@ -131,7 +131,8 @@ def build():
                   "0005_avatars.sql", "0006_avatars_in_lists.sql",
                   "0007_avatar_read.sql", "0008_doctor_activation.sql",
                   "0009_care_bookings_assistants.sql", "0010_medical_storage.sql",
-                  "0011_plans_followups_med_review.sql", "0012_doctor_finance.sql", "0013_prescriptions.sql", "0014_auto_confirm_email.sql")
+                  "0011_plans_followups_med_review.sql", "0012_doctor_finance.sql", "0013_prescriptions.sql", "0014_auto_confirm_email.sql",
+                  "0015_offers_announcements.sql", "0016_offers_storage.sql")
     ) + BACKFILL
     out = ROOT / "setup"
     (out / "part1.sql").write_text(p1, encoding="utf-8")

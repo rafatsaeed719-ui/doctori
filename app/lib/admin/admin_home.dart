@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../common/announcements.dart';
 import '../common/settings_screen.dart';
 import '../core/avatar.dart';
 import '../core/backgrounds.dart';
@@ -162,6 +163,12 @@ class _Stats extends StatelessWidget {
                         subtitle: tr('بحث وتعديل وحذف', 'Search, edit, delete'), onTap: () => goTo(1)),
                     Tile3D(icon: Icons.verified_user_rounded, color: Tone.orange, label: tr('توثيق الأطباء', 'Verify doctors'),
                         badge: (s['doctors_pending'] as num?)?.toInt(), onTap: () => goTo(2)),
+                    Tile3D(icon: Icons.campaign_rounded, color: Tone.indigo, label: tr('بوست للصفحة الرئيسية', 'Home post'),
+                        subtitle: tr('للأطباء أو المرضى أو الكل', 'To doctors, patients or all'),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminAnnouncementsScreen()))),
+                    Tile3D(icon: Icons.local_offer_rounded, color: Tone.red, label: tr('عروض الأطباء', 'Doctors’ offers'),
+                        subtitle: tr('مراجعة وإخفاء', 'Review & hide'),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminOffersScreen()))),
                     Tile3D(icon: Icons.category_rounded, color: Tone.purple, label: tr('التخصصات والإعدادات', 'Specialties & settings'),
                         onTap: () => goTo(3)),
                   ]),

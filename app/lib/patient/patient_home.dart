@@ -14,6 +14,8 @@ import 'medical_file_screen.dart';
 import 'meds_screen.dart';
 import 'my_doctors_screen.dart';
 import 'my_plan_screen.dart';
+import '../common/announcements.dart';
+import '../common/offers_screens.dart';
 import '../doctor/rx_screens.dart';
 import 'my_requests_screen.dart';
 import 'search_screen.dart';
@@ -194,7 +196,9 @@ class _PatientDashboard extends StatelessWidget {
                     ),
                   ]),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 14),
+                const AnnouncementsStrip(),
+                const OffersStrip(),
                 TileGrid(children: [
                   Tile3D(icon: Icons.search_rounded, color: Tone.blue, label: tr('ابحث عن طبيب', 'Find a doctor'),
                       subtitle: tr('بالتخصص أو الأقرب ليك', 'By specialty or nearby'), onTap: () => goTo(1)),
@@ -218,6 +222,9 @@ class _PatientDashboard extends StatelessWidget {
                         await Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPlanScreen()));
                         reload();
                       }),
+                  Tile3D(icon: Icons.local_offer_rounded, color: Tone.red, label: tr('عروض الأطباء', 'Doctors’ offers'),
+                      subtitle: tr('عمليات وكشف وخدمات', 'Operations, visits, services'),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OffersScreen()))),
                   Tile3D(icon: Icons.receipt_long_rounded, color: Tone.amber, label: tr('روشتاتي', 'My prescriptions'),
                       subtitle: tr('اطبعها أو ابعتها', 'Print or share'),
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPrescriptionsScreen()))),

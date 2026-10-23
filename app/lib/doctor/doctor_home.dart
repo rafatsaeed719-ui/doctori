@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../common/announcements.dart';
+import '../common/offers_screens.dart';
 import '../common/settings_screen.dart';
 import '../core/avatar.dart';
 import '../core/backgrounds.dart';
@@ -180,6 +182,7 @@ class _Dashboard extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 14),
+        const AnnouncementsStrip(),
         if (!verified) ...[
           _statusBanner(context, status, data['awaiting_review'] as bool),
           const SizedBox(height: 10),
@@ -203,6 +206,15 @@ class _Dashboard extends StatelessWidget {
           Tile3D(icon: Icons.account_balance_wallet_rounded, color: Tone.green, label: tr('رصيدي اليومي', 'Daily balance'),
               subtitle: tr('الدخل والمصروفات', 'Income & expenses'),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FinanceScreen()))),
+          Tile3D(icon: Icons.campaign_rounded, color: Tone.red, label: tr('إعلاناتي وعروضي', 'My offers'),
+              subtitle: tr('توصل لكل المرضى', 'Reach every patient'),
+              onTap: () {
+                if (!verified) {
+                  showMessage(context, tr('متاح بعد تفعيل حسابك.', 'Available after activation.'), error: true);
+                  return;
+                }
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorOffersScreen()));
+              }),
           Tile3D(icon: Icons.receipt_long_rounded, color: look.accent, label: tr('الروشتة', 'Prescription'),
               subtitle: tr('اكتب واطبع وابعت', 'Write, print, send'),
               onTap: () {
