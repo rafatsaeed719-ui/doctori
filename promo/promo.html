@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>دكتوري — فيديو دعائي</title>
+<style>
+@font-face { font-family: Cairo; src: url(fonts/Cairo.ttf); font-weight: 200 1000; }
+@font-face { font-family: Tajawal; src: url(fonts/Tajawal-Regular.ttf); font-weight: 400; }
+@font-face { font-family: Tajawal; src: url(fonts/Tajawal-Medium.ttf); font-weight: 500; }
+@font-face { font-family: Tajawal; src: url(fonts/Tajawal-Bold.ttf); font-weight: 700; }
+@font-face { font-family: Tajawal; src: url(fonts/Tajawal-ExtraBold.ttf); font-weight: 800; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scrollbar-width: none; } ::-webkit-scrollbar { display: none; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0A1A1E; }
+body { font-family: Tajawal, 'Noto Color Emoji', sans-serif; color: #12303A; }
+.scene { position: absolute; inset: 0; overflow: hidden; opacity: 0; }
+.abs { position: absolute; }
+.h { font-family: Cairo, 'Noto Color Emoji', sans-serif; font-weight: 900; }
+.wave { position: absolute; left: -10%; right: -10%; bottom: -120px; height: 380px; background: #F7FAFA; border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+.pill { position: absolute; right: 120px; font-family: Cairo, 'Noto Color Emoji', sans-serif; font-weight: 800; font-size: 46px; padding: 14px 36px; border-radius: 22px; color: #fff; white-space: nowrap; box-shadow: 0 14px 30px rgba(0,0,0,.18); transform-origin: right center; opacity: 0; }
+.title { position: absolute; right: 120px; top: 110px; font-family: Cairo, sans-serif; font-weight: 900; font-size: 84px; color: #fff; text-align: right; opacity: 0; line-height: 1.25; text-shadow: 0 6px 24px rgba(0,0,0,.15); }
+.eyebrow { font-family: Cairo, sans-serif; font-weight: 800; font-size: 34px; color: #F6C343; display: block; margin-bottom: 6px; }
+/* phone */
+.phone { position: absolute; width: 440px; height: 900px; border-radius: 64px; background: #10181C; padding: 16px; box-shadow: 0 40px 80px rgba(0,0,0,.35), inset 0 0 0 3px #2A363C; }
+.screen { width: 100%; height: 100%; border-radius: 50px; overflow: hidden; background: #EEF6F6; position: relative; direction: rtl; }
+.notch { position: absolute; top: 12px; left: 50%; width: 130px; height: 32px; margin-left: -65px; background: #10181C; border-radius: 20px; z-index: 5; }
+.appbar { background: #0B6770; color: #fff; padding: 64px 26px 22px; font-family: Cairo, sans-serif; font-weight: 800; font-size: 30px; }
+.card { background: #fff; border-radius: 26px; margin: 14px 18px; padding: 20px; box-shadow: 0 8px 20px rgba(11,103,112,.10); }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 6px 18px; }
+.tile { background: #fff; border-radius: 24px; padding: 18px 10px 16px; text-align: center; box-shadow: 0 10px 22px rgba(11,103,112,.12); font-family: Cairo, sans-serif; font-weight: 800; font-size: 22px; }
+.ic { width: 74px; height: 74px; border-radius: 22px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 10px 18px rgba(0,0,0,.18), inset 0 -6px 0 rgba(0,0,0,.12); }
+.chip { display: inline-block; padding: 8px 16px; border-radius: 16px; font-weight: 800; font-size: 21px; margin: 4px; }
+.notif { position: absolute; left: 14px; right: 14px; top: 54px; background: rgba(255,255,255,.97); border-radius: 26px; padding: 18px 20px; box-shadow: 0 16px 34px rgba(0,0,0,.25); display: flex; gap: 14px; align-items: center; z-index: 6; }
+.notif .ni { width: 58px; height: 58px; border-radius: 16px; background: #0B6770; display: flex; align-items: center; justify-content: center; }
+.notif b { font-family: Cairo, sans-serif; font-size: 23px; display: block; }
+.notif span { font-size: 20px; color: #3E5660; }
+/* laptop */
+.laptop { position: absolute; width: 1000px; height: 640px; }
+.lid { position: absolute; left: 60px; right: 60px; top: 0; height: 590px; background: #1A2328; border-radius: 26px 26px 6px 6px; padding: 22px; box-shadow: 0 30px 60px rgba(0,0,0,.3); }
+.lscreen { width: 100%; height: 100%; background: #F4F8F7; border-radius: 8px; overflow: hidden; position: relative; direction: rtl; }
+.base { position: absolute; left: 0; right: 0; bottom: 0; height: 52px; background: linear-gradient(#DDE4E6, #AEB9BD); border-radius: 6px 6px 40px 40px; }
+.base::after { content: ''; position: absolute; left: 50%; top: 0; width: 180px; height: 14px; margin-left: -90px; background: #9AA6AA; border-radius: 0 0 14px 14px; }
+</style>
+</head>
+<body>
+
+<!-- ============ S1: the clinic ============ -->
+<div class="scene" id="s1" style="background:#E7EEF0">
+  <div class="abs" style="left:0;right:0;bottom:0;height:300px;background:#CFD9DC"></div>
+  <div class="abs" style="left:0;right:0;bottom:300px;height:18px;background:#B9C6CA"></div>
+  <!-- sign -->
+  <div class="abs h" id="s1sign" style="right:150px;top:300px;background:#0E7C86;color:#fff;font-size:64px;padding:8px 46px;border-radius:14px">عيادة</div>
+  <!-- door -->
+  <div class="abs" style="left:780px;top:250px;width:420px;height:530px;background:#9DAAB0;border-radius:10px 10px 0 0"></div>
+  <div class="abs" style="left:800px;top:270px;width:185px;height:510px;background:#7F8E95"></div>
+  <div class="abs" style="left:1000px;top:270px;width:185px;height:510px;background:#7F8E95"></div>
+  <div class="abs" style="left:825px;top:300px;width:135px;height:200px;background:#A9DDE3;border-radius:6px"></div>
+  <div class="abs" style="left:1025px;top:300px;width:135px;height:200px;background:#A9DDE3;border-radius:6px"></div>
+  <!-- desk -->
+  <div class="abs" style="right:120px;top:520px;width:560px;height:260px;background:#F7FAFA;border-radius:12px;box-shadow:0 10px 0 #0E7C86 inset"></div>
+  <div class="abs" style="right:330px;top:430px;width:130px;height:90px;background:#26343A;border-radius:8px"></div>
+  <div class="abs" style="right:385px;top:520px;width:20px;height:16px;background:#26343A"></div>
+  <!-- ringing phone + papers on desk -->
+  <div class="abs" id="s1ring" style="right:170px;top:440px;font-size:70px">☎️</div>
+  <div class="abs" id="s1paper" style="right:520px;top:470px;font-size:60px">📄</div>
+  <!-- chairs with waiting people -->
+  <div class="abs" style="left:110px;top:600px;display:flex;gap:26px">
+    <div style="width:130px;height:150px;background:#14A3A3;border-radius:22px 22px 8px 8px"></div>
+    <div style="width:130px;height:150px;background:#14A3A3;border-radius:22px 22px 8px 8px"></div>
+    <div style="width:130px;height:150px;background:#14A3A3;border-radius:22px 22px 8px 8px"></div>
+    <div style="width:130px;height:150px;background:#14A3A3;border-radius:22px 22px 8px 8px"></div>
+  </div>
+  <div class="abs" id="s1people" style="left:120px;top:470px;display:flex;gap:46px;font-size:96px">
+    <span>🧔</span><span>👵</span><span>👩</span><span>👨‍🦱</span>
+  </div>
+  <div class="abs" style="left:560px;top:300px;width:120px;height:120px;border-radius:50%;background:#fff;border:8px solid #9DAAB0"></div>
+  <div class="abs" id="s1hand" style="left:616px;top:326px;width:8px;height:40px;background:#26343A;transform-origin:50% 100%;border-radius:4px"></div>
+  <!-- bubble -->
+  <div class="abs h" id="s1q" style="left:50%;top:80px;transform:translateX(-50%);background:#fff;padding:22px 56px;border-radius:40px;font-size:64px;box-shadow:0 20px 40px rgba(0,0,0,.15);white-space:nowrap">عيادتك لسه شغالة بالورق والتليفون؟</div>
+</div>
+
+<!-- ============ S2: chaos ============ -->
+<div class="scene" id="s2" style="background:#F6C343">
+  <div id="papers"></div>
+  <div class="abs" style="right:120px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;gap:28px;align-items:flex-end">
+    <div class="h s2l" style="font-size:78px;color:#12303A;background:#fff;padding:10px 40px;border-radius:24px">⏰ مواعيد بتتنسى</div>
+    <div class="h s2l" style="font-size:78px;color:#12303A;background:#fff;padding:10px 40px;border-radius:24px">📄 روشتات بتضيع</div>
+    <div class="h s2l" style="font-size:78px;color:#12303A;background:#fff;padding:10px 40px;border-radius:24px">📒 حسابات في كشكول</div>
+  </div>
+</div>
+
+<!-- ============ S3: Doctori reveal ============ -->
+<div class="scene" id="s3" style="background:linear-gradient(160deg,#0E7C86,#095560)">
+  <div class="wave"></div>
+  <div class="laptop" id="s3lap" style="left:460px;top:250px">
+    <div class="lid"><div class="lscreen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#F7FAFA">
+      <img id="s3logo" src="assets/logo.png" style="width:250px;height:250px;object-fit:contain">
+      <div class="h" id="s3name" style="font-size:96px;color:#0B6770;line-height:1.1">دكتوري</div>
+    </div></div>
+    <div class="base"></div>
+  </div>
+  <div class="abs h" id="s3tag" style="left:0;right:0;top:110px;text-align:center;color:#fff;font-size:80px">عيادتك كلها في موبايلك</div>
+</div>
+
+<!-- ============ S4: booking + queue ============ -->
+<div class="scene" id="s4" style="background:linear-gradient(160deg,#1E88C8,#0B6770)">
+  <div class="wave"></div>
+  <div class="title" id="s4t"><span class="eyebrow">للمريض والسكرتارية</span>حجز ودور انتظار<br>من غير زحمة</div>
+  <div class="phone" id="s4p" style="left:300px;top:110px"><div class="screen"><div class="notch"></div>
+    <div class="appbar">احجز مع د. أحمد</div>
+    <div class="card"><div class="h" style="font-size:24px;margin-bottom:8px">اختار اليوم</div>
+      <span class="chip" style="background:#E3F3F4">السبت</span><span class="chip" style="background:#0B6770;color:#fff">الأحد</span><span class="chip" style="background:#E3F3F4">الاثنين</span></div>
+    <div class="card"><div class="h" style="font-size:24px;margin-bottom:8px">المواعيد الفاضية</div>
+      <span class="chip" style="background:#E3F3F4">5:00 م</span><span class="chip" style="background:#E3F3F4">5:20 م</span><span class="chip" id="s4slot" style="background:#E3F3F4">5:40 م</span>
+      <span class="chip" style="background:#E3F3F4">6:00 م</span><span class="chip" style="background:#E3F3F4">6:20 م</span><span class="chip" style="background:#E3F3F4">6:40 م</span></div>
+    <div class="card" id="s4queue" style="background:linear-gradient(135deg,#14A3A3,#0B6770);color:#fff;display:flex;align-items:center;gap:18px">
+      <div style="text-align:center"><div style="font-size:20px">رقمك</div><div class="h" id="s4num" style="font-size:64px;line-height:1">7</div></div>
+      <div><div class="h" id="s4ahead" style="font-size:26px">قدامك 2 — حوالي 40 دقيقة</div><div style="font-size:20px">الدور دلوقتي: 5</div></div>
+    </div>
+    <div class="notif" id="s4n"><div class="ni"><span style="font-size:34px">🔔</span></div><div><b>دورك جه!</b><span>اتفضل ادخل للدكتور — رقمك 7</span></div></div>
+  </div></div>
+  <div class="pill" id="p41" style="top:480px;background:#E8862E">📅 حجز في المواعيد الفاضية بس</div>
+  <div class="pill" id="p42" style="top:590px;background:#7B4FD6">🧍 دور الانتظار من الموبايل</div>
+  <div class="pill" id="p43" style="top:700px;background:#14A3A3">🔔 إشعار «دورك جه»</div>
+</div>
+
+<!-- ============ S5: case plan ============ -->
+<div class="scene" id="s5" style="background:linear-gradient(160deg,#16A085,#0B6770)">
+  <div class="wave"></div>
+  <div class="title" id="s5t"><span class="eyebrow">للدكتور</span>خطة علاج<br>على حسب تخصصك</div>
+  <div class="phone" id="s5p" style="left:300px;top:110px"><div class="screen"><div class="notch"></div>
+    <div class="appbar">الحالة — علاج طبيعي</div>
+    <div class="card"><div class="h" style="font-size:22px">🩺 المشكلة</div>
+      <span class="chip" style="background:#D9F2EC;color:#0B6770">آلام أسفل الظهر</span><span class="chip" style="background:#D9F2EC;color:#0B6770">انزلاق غضروفي</span>
+      <div class="h" style="font-size:22px;margin-top:6px">🎯 الهدف</div><span class="chip" style="background:#E2F6E9;color:#1E7B45">تخسيس</span><span class="chip" style="background:#E2F6E9;color:#1E7B45">تخفيف الألم</span></div>
+    <div class="card" style="display:flex;gap:16px;align-items:center">
+      <svg width="130" height="250" viewBox="0 0 130 250" aria-hidden="true">
+        <circle cx="65" cy="24" r="20" fill="#DCE7EA"/><rect x="40" y="48" width="50" height="95" rx="18" fill="#DCE7EA"/>
+        <rect x="18" y="52" width="18" height="80" rx="9" fill="#DCE7EA"/><rect x="94" y="52" width="18" height="80" rx="9" fill="#DCE7EA"/>
+        <rect x="44" y="140" width="18" height="100" rx="9" fill="#DCE7EA"/><rect x="68" y="140" width="18" height="100" rx="9" fill="#DCE7EA"/>
+        <circle id="s5dot1" cx="65" cy="125" r="12" fill="#E5484D"/><circle id="s5dot2" cx="77" cy="200" r="10" fill="#E5484D"/>
+      </svg>
+      <div style="flex:1">
+        <div style="background:#EEF6F6;border-radius:16px;padding:10px 14px;margin-bottom:10px"><div style="font-size:18px">الوزن</div><div class="h" style="font-size:30px"><span id="s5w">96</span> kg <span style="color:#1E9E5A;font-size:20px">▼</span></div></div>
+        <div style="background:#EEF6F6;border-radius:16px;padding:10px 14px"><div style="font-size:18px">الطول</div><div class="h" style="font-size:30px">175 cm</div></div>
+      </div>
+    </div>
+    <div class="card"><div class="h" style="font-size:22px;margin-bottom:8px">⏳ الكورس: 6 أسابيع</div>
+      <div style="height:18px;background:#D9F2EC;border-radius:10px;overflow:hidden"><div id="s5bar" style="height:100%;width:10%;background:#16A085;border-radius:10px"></div></div>
+      <div class="h" style="font-size:22px;margin-top:8px"><span id="s5s">1</span> / 12 جلسة</div></div>
+  </div></div>
+  <div class="pill" id="p51" style="top:480px;background:#E8862E">📍 المشكلة فين في الجسم</div>
+  <div class="pill" id="p52" style="top:590px;background:#1E88C8">📏 القياسات ومتابعة التقدم</div>
+  <div class="pill" id="p53" style="top:700px;background:#7B4FD6">🗂️ ملف طبي كامل للمريض</div>
+</div>
+
+<!-- ============ S6: prescription ============ -->
+<div class="scene" id="s6" style="background:linear-gradient(160deg,#E8862E,#B5651D)">
+  <div class="wave"></div>
+  <div class="title" id="s6t"><span class="eyebrow" style="color:#FFF1C9">روشتة إلكترونية</span>روشتة باسمك<br>ولوجو عيادتك</div>
+  <div class="phone" id="s6p" style="left:300px;top:110px"><div class="screen" style="background:#fff"><div class="notch"></div>
+    <div style="background:#0B6770;color:#fff;padding:66px 24px 22px;display:flex;align-items:center;gap:16px">
+      <div style="width:84px;height:84px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center"><img src="assets/logo.png" style="width:66px;height:66px;object-fit:contain"></div>
+      <div><div class="h" style="font-size:30px">د. أحمد علي</div><div style="font-size:20px">استشاري علاج طبيعي</div></div>
+    </div>
+    <div style="padding:16px 24px;font-size:20px;background:#E3F3F4">الاسم: محمد حسن &nbsp;&nbsp; التاريخ: 24/10</div>
+    <div class="h" style="font-size:56px;color:#0B6770;padding:6px 24px;direction:ltr;text-align:left">Rx</div>
+    <div id="rxitems" style="padding:0 24px">
+      <div class="rxi" style="border-right:5px solid #0B6770;padding:6px 14px;margin-bottom:14px"><div class="h" style="font-size:24px">1. مسكن للألم</div><div style="font-size:19px">قرص — كل 12 ساعة — لمدة 5 أيام</div></div>
+      <div class="rxi" style="border-right:5px solid #0B6770;padding:6px 14px;margin-bottom:14px"><div class="h" style="font-size:24px">2. باسط للعضلات</div><div style="font-size:19px">قرص — مرة يومياً — لمدة 7 أيام</div></div>
+      <div class="rxi" style="border-right:5px solid #0B6770;padding:6px 14px;margin-bottom:14px"><div class="h" style="font-size:24px">3. جل موضعي</div><div style="font-size:19px">دهان — مرتين يومياً</div></div>
+    </div>
+    <div style="position:absolute;left:0;right:0;bottom:0;background:#E3F3F4;padding:16px 24px;font-size:18px">📍 عنوان العيادة &nbsp; • &nbsp; 📞 للحجز &nbsp; • &nbsp; واتساب</div>
+    <div class="notif" id="s6n"><div class="ni"><span style="font-size:34px">💊</span></div><div><b>وقت دواك</b><span>مسكن للألم — قرص بعد الأكل</span></div></div>
+  </div></div>
+  <div class="pill" id="p61" style="top:480px;background:#0B6770">🖨️ تتطبع أو تتبعت واتساب</div>
+  <div class="pill" id="p62" style="top:590px;background:#7B4FD6">💊 تذكير بمواعيد كل جرعة</div>
+  <div class="pill" id="p63" style="top:700px;background:#1E88C8">📷 المريض يصوّر الدوا وانت تحدد الجرعة</div>
+</div>
+
+<!-- ============ S7: finance (laptop) ============ -->
+<div class="scene" id="s7" style="background:linear-gradient(160deg,#2DB37A,#0B6770)">
+  <div class="wave"></div>
+  <div class="title" id="s7t"><span class="eyebrow">إدارة العيادة</span>حساباتك يوم بيوم</div>
+  <div class="laptop" id="s7lap" style="left:120px;top:300px">
+    <div class="lid"><div class="lscreen" style="padding:22px;display:flex;flex-direction:column;gap:16px">
+      <div class="h" style="font-size:30px;color:#0B6770">💰 رصيدي اليومي</div>
+      <div style="display:flex;gap:16px">
+        <div style="flex:1.3;background:linear-gradient(135deg,#2DB37A,#1E7B45);border-radius:20px;padding:18px;color:#fff">
+          <div style="font-size:20px">صافي النهارده</div><div class="h" style="font-size:52px;line-height:1.1"><span id="s7net">0</span> ج.م</div><div style="font-size:18px">👥 <span id="s7cases">0</span> حالة</div></div>
+        <div style="flex:1;background:#fff;border-radius:20px;padding:18px"><div style="font-size:18px">كشف</div><div class="h" style="font-size:34px;color:#1E88C8">×14</div></div>
+        <div style="flex:1;background:#fff;border-radius:20px;padding:18px"><div style="font-size:18px">أشعة وتحاليل</div><div class="h" style="font-size:34px;color:#7B4FD6">×5</div></div>
+      </div>
+      <div style="flex:1;background:#fff;border-radius:20px;padding:18px;display:flex;align-items:flex-end;gap:14px" id="s7bars">
+        <div class="bar" style="flex:1;border-radius:8px 8px 0 0;background:#1E88C8"></div><div class="bar" style="flex:1;border-radius:8px 8px 0 0;background:#1E88C8"></div>
+        <div class="bar" style="flex:1;border-radius:8px 8px 0 0;background:#1E88C8"></div><div class="bar" style="flex:1;border-radius:8px 8px 0 0;background:#1E88C8"></div>
+        <div class="bar" style="flex:1;border-radius:8px 8px 0 0;background:#1E88C8"></div><div class="bar" style="flex:1;border-radius:8px 8px 0 0;background:#1E88C8"></div>
+        <div class="bar" style="flex:1;border-radius:8px 8px 0 0;background:#2DB37A"></div>
+      </div>
+    </div></div>
+    <div class="base"></div>
+  </div>
+  <div class="pill" id="p71" style="top:400px;background:#E8862E">💵 دخل كل حالة والمصروفات</div>
+  <div class="pill" id="p72" style="top:510px;background:#7B4FD6">📊 تقارير ورسوم بيانية</div>
+  <div class="pill" id="p73" style="top:620px;background:#1E88C8">📦 مخزن المستلزمات</div>
+  <div class="pill" id="p74" style="top:730px;background:#E5484D">👩‍💼 مساعدين بصلاحيات</div>
+</div>
+
+<!-- ============ S8: chat + offers ============ -->
+<div class="scene" id="s8" style="background:linear-gradient(160deg,#8B5CF6,#5B3AB5)">
+  <div class="wave"></div>
+  <div class="title" id="s8t"><span class="eyebrow">تواصل ومرضى جدد</span>قريب من مرضاك</div>
+  <div class="phone" id="s8p" style="left:130px;top:110px"><div class="screen"><div class="notch"></div>
+    <div class="appbar">💬 رسائل العيادة</div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px" id="chat">
+      <div class="msg" style="align-self:flex-start;background:#fff;border-radius:22px;padding:14px 18px;font-size:22px;max-width:80%">ممكن أغيّر ميعادي لبكرة؟</div>
+      <div class="msg" style="align-self:flex-end;background:#0B6770;color:#fff;border-radius:22px;padding:14px 18px;font-size:22px;max-width:80%">أكيد، بكرة الساعة 5 ✓</div>
+      <div class="msg" style="align-self:flex-start;background:#fff;border-radius:22px;padding:14px 18px;font-size:22px;max-width:80%">شكراً يا دكتور 🙏</div>
+    </div>
+  </div></div>
+  <div class="abs" id="s8offer" style="left:600px;top:430px;width:350px;background:#fff;border-radius:30px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.3)">
+    <div style="height:150px;background:linear-gradient(135deg,#E8862E,#E5484D);display:flex;align-items:center;justify-content:center;font-size:80px;position:relative">🏥<span class="h" style="position:absolute;top:14px;left:14px;background:#fff;color:#E5484D;font-size:24px;padding:4px 14px;border-radius:14px">خصم 25٪</span></div>
+    <div style="padding:20px"><div class="h" style="font-size:28px">عملية الغضروف بالمنظار</div>
+      <div style="font-size:24px;color:#F0A500;margin:6px 0">★★★★★ <span style="color:#3E5660;font-size:20px">4.9</span></div>
+      <div class="h" style="background:#0B6770;color:#fff;text-align:center;border-radius:16px;padding:10px;font-size:24px">احجز بالعرض</div></div>
+  </div>
+  <div class="pill" id="p81" style="top:450px;background:#14A3A3">💬 شات مع المرضى</div>
+  <div class="pill" id="p82" style="top:560px;background:#E8862E">📣 إعلاناتك لكل مستخدمي دكتوري</div>
+  <div class="pill" id="p83" style="top:670px;background:#E5484D">⭐ تقييمات المرضى</div>
+</div>
+
+<!-- ============ S9: platforms ============ -->
+<div class="scene" id="s9" style="background:#14A3A3">
+  <div class="abs h" id="s9t" style="left:0;right:0;top:120px;text-align:center;color:#fff;font-size:86px">متاح على أندرويد والآيفون</div>
+  <div class="abs" style="left:0;right:0;top:330px;display:flex;justify-content:center;gap:120px">
+    <div class="qr" style="background:#fff;border-radius:36px;padding:30px;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,.2)">
+      <div class="h" style="font-size:52px;color:#0B6770;direction:ltr">Android</div><img src="assets/qr-android.png" style="width:360px;height:360px;image-rendering:pixelated">
+      <div class="h" style="font-size:32px">امسح ونزّل التطبيق</div></div>
+    <div class="qr" style="background:#fff;border-radius:36px;padding:30px;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,.2)">
+      <div class="h" style="font-size:52px;color:#12303A;direction:ltr">Apple</div><img src="assets/qr-iphone.png" style="width:360px;height:360px;image-rendering:pixelated">
+      <div class="h" style="font-size:32px">افتحه من المتصفح</div></div>
+  </div>
+</div>
+
+<!-- ============ S10: end card ============ -->
+<div class="scene" id="s10" style="background:#F7FAFA">
+  <div class="abs" style="left:0;right:0;top:0;height:16px;background:linear-gradient(90deg,#0B6770,#14A3A3,#E8862E)"></div>
+  <div class="abs" id="s10box" style="left:0;right:0;top:110px;display:flex;flex-direction:column;align-items:center;gap:12px">
+    <img src="assets/logo.png" style="width:230px;height:230px;object-fit:contain">
+    <div class="h" style="font-size:110px;color:#0B6770;line-height:1.05">دكتوري</div>
+    <div class="h" id="s10tag" style="font-size:56px;color:#1E7B45">طوّر عيادتك مع دكتوري</div>
+    <div id="s10by" style="font-family:Cairo,sans-serif;font-weight:700;font-size:38px;color:#3E5660;margin-top:8px">من <span style="color:#B5651D;font-weight:900">بيثيل</span> للتدريب والتطوير — Bethel</div>
+    <div id="s10c" class="h" style="margin-top:26px;display:flex;align-items:center;gap:22px;font-size:62px;color:#12303A;direction:ltr">
+      <svg width="74" height="74" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#25D366"/><path d="M7 17l.9-2.6A5.5 5.5 0 1 1 10 16.4z" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M10 9.2c.3 1.5 1.3 2.6 2.8 3.2l.7-.7 1.2.6-.3 1.1c-2.3.2-4.8-2.2-4.9-4.6l1.1-.3.6 1.2z" fill="#fff"/></svg>
+      01207760898</div>
+    <div class="h" style="font-size:34px;color:#3E5660;direction:rtl">للتفعيل والاستفسار</div>
+  </div>
+</div>
+
+<script>
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const io = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const out = t => 1 - Math.pow(1 - t, 3);
+const back = t => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+const P = (t, s, d) => clamp((t - s) / d);
+const $ = id => document.getElementById(id);
+const S = (el, o) => { for (const k in o) el.style[k] = o[k]; };
+
+// scene schedule [start, end]
+const SC = { s1: [0, 6.5], s2: [6.5, 11.5], s3: [11.5, 17], s4: [17, 25], s5: [25, 32], s6: [32, 39], s7: [39, 46], s8: [46, 52.5], s9: [52.5, 57], s10: [57, 64] };
+window.DURATION = 64;
+window.SFX = [];   // [time, kind] for the soundtrack
+const pillTimes = { s4: [2.6, 3.6, 4.6], s5: [2.4, 3.4, 4.4], s6: [2.6, 3.6, 4.6], s7: [2.2, 3.0, 3.8, 4.6], s8: [2.4, 3.3, 4.2] };
+for (const s in pillTimes) pillTimes[s].forEach(x => SFX.push([SC[s][0] + x, 'pop']));
+for (const s in SC) if (s !== 's1') SFX.push([SC[s][0] - 0.25, 'whoosh']);
+SFX.push([12.6, 'chime'], [57.6, 'chime']);
+
+// flying papers for S2
+const papers = $('papers');
+const PAPERS = [];
+for (let i = 0; i < 16; i++) {
+  const d = document.createElement('div');
+  d.className = 'abs';
+  const emoji = ['📄', '📁', '🗂️', '📋', '🧾', '📒'][i % 6];
+  d.textContent = emoji;
+  d.style.fontSize = (90 + (i * 37) % 70) + 'px';
+  papers.appendChild(d);
+  PAPERS.push({ el: d, x: 60 + (i * 97) % 900, delay: (i * 0.23) % 2.2, rot: (i % 2 ? 1 : -1) * (20 + (i * 13) % 50), speed: 520 + (i * 61) % 380 });
+}
+
+function scene(id, t) {
+  const [a, b] = SC[id];
+  const el = $(id);
+  if (t < a - 0.01 || t > b + 0.6) { el.style.opacity = 0; el.style.display = 'none'; return null; }
+  el.style.display = 'block';
+  // circle reveal in, quick fade out handled by the next scene covering it
+  const pin = P(t, a, 0.6);
+  el.style.opacity = 1;
+  el.style.clipPath = id === 's1' ? 'none' : `circle(${io(pin) * 150}% at 50% 55%)`;
+  el.style.zIndex = Object.keys(SC).indexOf(id) + 1;
+  return t - a;
+}
+
+function pills(prefix, lt, times) {
+  times.forEach((x, i) => {
+    const p = P(lt, x, 0.45);
+    S($(prefix + (i + 1)), { opacity: p > 0 ? 1 : 0, transform: `scale(${p > 0 ? back(p) : 0})` });
+  });
+}
+function titleIn(id, lt) { const p = out(P(lt, 0.5, 0.7)); S($(id), { opacity: p, transform: `translateY(${(1 - p) * 40}px)` }); }
+function phoneIn(id, lt, x0) { const p = out(P(lt, 0.3, 0.9)); S($(id), { transform: `translateY(${(1 - p) * 700}px) rotate(${(1 - p) * -8}deg)` }); }
+function notif(id, lt, at) { const p = out(P(lt, at, 0.5)); const q = P(lt, at + 2.4, 0.4); S($(id), { transform: `translateY(${-160 + p * 160 - q * 200}px)`, opacity: p * (1 - q) }); }
+
+window.render = function (t) {
+  let lt;
+  // S1
+  if ((lt = scene('s1', t)) !== null) {
+    S($('s1q'), { opacity: out(P(lt, 0.8, 0.6)), transform: `translateX(-50%) scale(${0.6 + 0.4 * back(P(lt, 0.8, 0.6))})` });
+    S($('s1ring'), { transform: `rotate(${Math.sin(lt * 40) * (lt > 1.5 ? 14 : 0)}deg)` });
+    S($('s1hand'), { transform: `rotate(${lt * 120}deg)` });
+    S($('s1people'), { transform: `translateY(${Math.abs(Math.sin(lt * 3)) * -6}px)` });
+    S($('s1paper'), { transform: `translateY(${-Math.max(0, lt - 3) * 60}px) rotate(${Math.max(0, lt - 3) * 80}deg)`, opacity: 1 - P(lt, 4.5, 1) });
+  }
+  // S2
+  if ((lt = scene('s2', t)) !== null) {
+    PAPERS.forEach(p => {
+      const k = Math.max(0, lt - p.delay);
+      S(p.el, { left: p.x + 'px', top: (-200 + k * p.speed) + 'px', transform: `rotate(${k * p.rot * 3}deg)` });
+    });
+    document.querySelectorAll('.s2l').forEach((e, i) => {
+      const p = P(lt, 0.7 + i * 0.9, 0.45);
+      S(e, { opacity: p > 0 ? 1 : 0, transform: `translateX(${(1 - out(p)) * -300}px) scale(${p > 0 ? back(p) : 0.5})` });
+    });
+  }
+  // S3
+  if ((lt = scene('s3', t)) !== null) {
+    const p = out(P(lt, 0.3, 1));
+    S($('s3lap'), { transform: `translateY(${(1 - p) * 500}px) scale(${0.8 + 0.2 * p})` });
+    const l = P(lt, 1.1, 0.7);
+    S($('s3logo'), { transform: `scale(${l > 0 ? back(l) : 0}) rotate(${(1 - l) * -30}deg)` });
+    S($('s3name'), { opacity: out(P(lt, 1.6, 0.6)), transform: `translateY(${(1 - out(P(lt, 1.6, 0.6))) * 30}px)` });
+    const g = out(P(lt, 2.4, 0.8));
+    S($('s3tag'), { opacity: g, transform: `translateY(${(1 - g) * -40}px)` });
+  }
+  // S4
+  if ((lt = scene('s4', t)) !== null) {
+    titleIn('s4t', lt); phoneIn('s4p', lt);
+    pills('p4', lt, pillTimes.s4);
+    const sel = lt > 1.8;
+    S($('s4slot'), { background: sel ? '#0B6770' : '#E3F3F4', color: sel ? '#fff' : '#12303A', transform: `scale(${sel ? 1 + 0.15 * Math.max(0, 1 - (lt - 1.8) * 3) : 1})` });
+    S($('s4queue'), { opacity: out(P(lt, 2.6, 0.5)), transform: `translateY(${(1 - out(P(lt, 2.6, 0.5))) * 40}px)` });
+    const ahead = lt < 4 ? 2 : (lt < 5 ? 1 : 0);
+    $('s4ahead').textContent = ahead > 0 ? `قدامك ${ahead} — حوالي ${ahead * 20} دقيقة` : 'إنت اللي عليك الدور 👏';
+    notif('s4n', lt, 5.4);
+  }
+  // S5
+  if ((lt = scene('s5', t)) !== null) {
+    titleIn('s5t', lt); phoneIn('s5p', lt);
+    pills('p5', lt, pillTimes.s5);
+    const pulse = 1 + 0.25 * Math.abs(Math.sin(lt * 4));
+    $('s5dot1').setAttribute('r', 12 * pulse); $('s5dot2').setAttribute('r', 10 * pulse);
+    const prog = out(P(lt, 2, 3.5));
+    $('s5w').textContent = Math.round(96 - prog * 3);
+    $('s5s').textContent = Math.max(1, Math.round(1 + prog * 5));
+    $('s5bar').style.width = (8 + prog * 42) + '%';
+  }
+  // S6
+  if ((lt = scene('s6', t)) !== null) {
+    titleIn('s6t', lt); phoneIn('s6p', lt);
+    pills('p6', lt, pillTimes.s6);
+    document.querySelectorAll('.rxi').forEach((e, i) => { const p = out(P(lt, 1.2 + i * 0.35, 0.4)); S(e, { opacity: p, transform: `translateX(${(1 - p) * -60}px)` }); });
+    notif('s6n', lt, 4.0);
+  }
+  // S7
+  if ((lt = scene('s7', t)) !== null) {
+    titleIn('s7t', lt);
+    const p = out(P(lt, 0.3, 0.9));
+    S($('s7lap'), { transform: `translateY(${(1 - p) * 600}px)` });
+    const c = out(P(lt, 1.2, 2.5));
+    $('s7net').textContent = Math.round(c * 4350).toLocaleString('en');
+    $('s7cases').textContent = Math.round(c * 19);
+    const hs = [45, 62, 38, 70, 55, 80, 92];
+    document.querySelectorAll('#s7bars .bar').forEach((b, i) => { b.style.height = (out(P(lt, 1.3 + i * 0.12, 0.6)) * hs[i]) + '%'; });
+    pills('p7', lt, pillTimes.s7);
+  }
+  // S8
+  if ((lt = scene('s8', t)) !== null) {
+    titleIn('s8t', lt); phoneIn('s8p', lt);
+    document.querySelectorAll('.msg').forEach((e, i) => { const p = P(lt, 1.2 + i * 0.7, 0.35); S(e, { opacity: p > 0 ? 1 : 0, transform: `scale(${p > 0 ? back(p) : 0})` }); });
+    const o = P(lt, 2.0, 0.6);
+    S($('s8offer'), { opacity: o > 0 ? 1 : 0, transform: `scale(${o > 0 ? back(o) : 0}) rotate(${(1 - out(o)) * 10}deg)` });
+    pills('p8', lt, pillTimes.s8);
+  }
+  // S9
+  if ((lt = scene('s9', t)) !== null) {
+    const p = out(P(lt, 0.4, 0.6));
+    S($('s9t'), { opacity: p, transform: `translateY(${(1 - p) * -40}px)` });
+    document.querySelectorAll('.qr').forEach((e, i) => { const q = P(lt, 0.9 + i * 0.4, 0.5); S(e, { opacity: q > 0 ? 1 : 0, transform: `scale(${q > 0 ? back(q) : 0})` }); });
+  }
+  // S10
+  if ((lt = scene('s10', t)) !== null) {
+    const p = P(lt, 0.4, 0.8);
+    S($('s10box'), { opacity: out(p), transform: `scale(${0.9 + 0.1 * out(p)})` });
+    S($('s10tag'), { opacity: out(P(lt, 1.2, 0.6)) });
+    S($('s10by'), { opacity: out(P(lt, 1.8, 0.6)) });
+    const c = P(lt, 2.4, 0.5);
+    S($('s10c'), { opacity: c > 0 ? 1 : 0, transform: `scale(${c > 0 ? back(c) : 0})` });
+    document.body.style.opacity = 1 - P(t, DURATION - 0.8, 0.8);
+  }
+};
+window.render(0);
+</script>
+</body>
+</html>
