@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 
 import 'l10n.dart';
+import 'live_sync.dart';
 import 'supa.dart';
 
-/// Loads data once, shows loading / error-with-retry, and supports pull-to-refresh.
+/// Loads data, shows loading / error-with-retry, supports pull-to-refresh,
+/// and reloads quietly by itself when synced data changes on any device (see LiveSync).
 class FutureView<T> extends StatefulWidget {
-  const FutureView({super.key, required this.load, required this.builder});
+  const FutureView({super.key, required this.load, required this.builder, this.live = true});
   final Future<T> Function() load;
   final Widget Function(BuildContext context, T data, Future<void> Function() reload) builder;
+
+  /// false for forms that must not change under the user's fingers.
+  final bool live;
 
   @override
   State<FutureView<T>> createState() => _FutureViewState<T>();
@@ -15,15 +20,55 @@ class FutureView<T> extends StatefulWidget {
 
 class _FutureViewState<T> extends State<FutureView<T>> {
   late Future<T> _future;
+  T? _data;
+  bool _hasData = false;
+  String _sig = '';
+  bool _quietBusy = false;
 
   @override
   void initState() {
     super.initState();
-    _future = widget.load();
+    _future = _track(widget.load());
+    if (widget.live) LiveSync.tick.addListener(_quietReload);
+  }
+
+  @override
+  void dispose() {
+    LiveSync.tick.removeListener(_quietReload);
+    super.dispose();
+  }
+
+  Future<T> _track(Future<T> f) => f.then((v) {
+        _data = v;
+        _hasData = true;
+        _sig = '$v';
+        return v;
+      });
+
+  /// Background reload: keeps the current data on screen and swaps only if something changed.
+  Future<void> _quietReload() async {
+    if (_quietBusy || !mounted || !_hasData) return;
+    _quietBusy = true;
+    try {
+      final v = await widget.load();
+      if (!mounted) return;
+      final sig = '$v';
+      if (sig != _sig) {
+        setState(() {
+          _data = v;
+          _sig = sig;
+          _future = Future.value(v);
+        });
+      }
+    } catch (_) {
+      // offline for a moment: keep what is on screen
+    } finally {
+      _quietBusy = false;
+    }
   }
 
   Future<void> _reload() async {
-    final f = widget.load();
+    final f = _track(widget.load());
     setState(() => _future = f);
     try {
       await f;
@@ -35,7 +80,9 @@ class _FutureViewState<T> extends State<FutureView<T>> {
     return FutureBuilder<T>(
       future: _future,
       builder: (context, snap) {
-        if (snap.connectionState != ConnectionState.done) return const LoadingView();
+        if (snap.connectionState != ConnectionState.done) {
+          return _hasData ? widget.builder(context, _data as T, _reload) : const LoadingView();
+        }
         if (snap.hasError) {
           return ErrorView(message: friendlyError(snap.error!), onRetry: _reload, details: errorDetails(snap.error!));
         }

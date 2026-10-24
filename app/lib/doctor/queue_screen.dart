@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../core/avatar.dart';
+import '../core/live_sync.dart';
 import '../core/l10n.dart';
 import '../core/look3d.dart';
 import '../core/supa.dart';
@@ -26,7 +27,10 @@ class QueueScreen extends StatefulWidget {
   State<QueueScreen> createState() => _QueueScreenState();
 }
 
-class _QueueScreenState extends State<QueueScreen> {
+class _QueueScreenState extends State<QueueScreen> with LiveReload<QueueScreen> {
+  @override
+  void onLiveChange() => _load();
+
   List<Map<String, dynamic>>? _clinics;
   String? _clinic;
   Map<String, dynamic>? _data;
@@ -265,7 +269,10 @@ class MyQueueCard extends StatefulWidget {
   State<MyQueueCard> createState() => _MyQueueCardState();
 }
 
-class _MyQueueCardState extends State<MyQueueCard> {
+class _MyQueueCardState extends State<MyQueueCard> with LiveReload<MyQueueCard> {
+  @override
+  void onLiveChange() => _load();
+
   List<Map<String, dynamic>> _items = const [];
   Timer? _timer;
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/live_sync.dart';
 import '../core/l10n.dart';
 import '../core/look3d.dart';
 import '../core/supa.dart';
@@ -19,7 +20,10 @@ class HealthCard extends StatefulWidget {
   State<HealthCard> createState() => _HealthCardState();
 }
 
-class _HealthCardState extends State<HealthCard> {
+class _HealthCardState extends State<HealthCard> with LiveReload<HealthCard> {
+  @override
+  void onLiveChange() => _load();
+
   Map<String, dynamic>? _h;
 
   @override

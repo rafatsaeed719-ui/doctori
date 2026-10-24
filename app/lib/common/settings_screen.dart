@@ -16,6 +16,7 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(tr('حسابي', 'My account'))),
       body: FutureView<Map<String, dynamic>>(
+        live: false,
         load: () => supa.from('profiles').select().eq('id', myId).single(),
         builder: (context, p, reload) => _Body(profile: p, reload: reload),
       ),

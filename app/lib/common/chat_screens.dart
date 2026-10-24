@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/avatar.dart';
+import '../core/live_sync.dart';
 import '../core/l10n.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
@@ -107,7 +108,10 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with LiveReload<ChatScreen> {
+  @override
+  void onLiveChange() => _load();
+
   final _text = TextEditingController();
   final _scroll = ScrollController();
   List<Map<String, dynamic>> _msgs = const [];

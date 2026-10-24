@@ -15,6 +15,7 @@ class DoctorProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(doctorId == null ? tr('بياناتي المهنية', 'Professional profile') : tr('البيانات المهنية', 'Professional info'))),
       body: FutureView<Map<String, dynamic>>(
+        live: false,
         load: () => supa.from('doctors').select().eq('id', doctorId ?? myId).single(),
         builder: (context, doc, reload) => _Form(doc: doc),
       ),

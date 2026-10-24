@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../center/center_screens.dart';
+import '../core/live_sync.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../admin/admin_home.dart';
@@ -35,6 +36,7 @@ class _AuthGateState extends State<AuthGate> {
       if (data.event == AuthChangeEvent.signedOut) {
         AppState.context = const {};
         Notifs.stop();
+        LiveSync.stop();
       }
       if (data.event == AuthChangeEvent.passwordRecovery) {
         navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const NewPasswordScreen()));
@@ -74,6 +76,7 @@ class _RoleRouterState extends State<RoleRouter> {
     final locale = ctx['locale'];
     if (locale is String) L10n.set(locale);
     Notifs.start();
+    LiveSync.start();
     return ctx;
   }
 
