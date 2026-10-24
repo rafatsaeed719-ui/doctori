@@ -4,6 +4,7 @@ import '../common/announcements.dart';
 import '../common/chat_screens.dart';
 import '../common/notifications.dart';
 import '../common/reviews.dart';
+import '../center/center_screens.dart';
 import 'inventory_screen.dart';
 import 'queue_screen.dart';
 import 'reports_screen.dart';
@@ -213,6 +214,9 @@ class _Dashboard extends StatelessWidget {
           Tile3D(icon: Icons.campaign_rounded, color: Tone.orange, label: tr('دور الانتظار', 'Waiting queue'),
               subtitle: tr('نادي اللي عليه الدور', 'Call the next patient'),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QueueScreen()))),
+          Tile3D(icon: Icons.local_hospital_rounded, color: Tone.indigo, label: tr('مراكزي الطبية', 'My centers'),
+              subtitle: tr('عيادات فيها أكتر من دكتور', 'Multi-doctor clinics'),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorCentersScreen()))),
           Tile3D(icon: Icons.chat_rounded, color: Tone.sky, label: tr('رسائل المرضى', 'Patient messages'),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatThreadsScreen(staff: true)))),
           Tile3D(icon: Icons.account_balance_wallet_rounded, color: Tone.green, label: tr('رصيدي اليومي', 'Daily balance'),

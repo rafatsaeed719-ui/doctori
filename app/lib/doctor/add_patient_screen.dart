@@ -8,7 +8,10 @@ import '../core/widgets.dart';
 /// Doctor creates a patient account (mobile + password) that is already linked to the clinic.
 /// No confirmation and no SMS: the doctor hands the login details to the patient.
 class AddPatientScreen extends StatefulWidget {
-  const AddPatientScreen({super.key});
+  const AddPatientScreen({super.key, this.doctorId});
+
+  /// A medical center adds the patient to one of its doctors; otherwise the acting doctor.
+  final String? doctorId;
   @override
   State<AddPatientScreen> createState() => _AddPatientScreenState();
 }
@@ -36,7 +39,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
         'p_phone': phone,
         'p_password': _password.text,
         'p_gender': _gender,
-        'p_doctor': actingDoctorId(),
+        'p_doctor': widget.doctorId ?? actingDoctorId(),
         'p_birth_date': _birth == null
             ? null
             : '${_birth!.year}-${_birth!.month.toString().padLeft(2, '0')}-${_birth!.day.toString().padLeft(2, '0')}',

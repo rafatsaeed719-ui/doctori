@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../center/center_screens.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../admin/admin_home.dart';
@@ -105,7 +107,9 @@ class _RoleRouterState extends State<RoleRouter> {
         return switch (ctx['role']) {
           'admin' => const AdminHome(),
           'doctor' => DoctorHome(onContextChanged: _refresh),
-          'assistant' => const AssistantHome(),
+          'assistant' => (ctx['assistant_of'] == null && (ctx['centers'] as List? ?? const []).isNotEmpty)
+              ? CenterPicker(centers: [for (final c in ctx['centers'] as List) Map<String, dynamic>.from(c as Map)])
+              : const AssistantHome(),
           _ => const PatientHome(),
         };
       },

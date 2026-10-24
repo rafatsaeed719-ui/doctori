@@ -18,7 +18,10 @@ import '../core/widgets.dart';
 
 /// Reception: today's waiting queue for one clinic — check in bookings, add walk-ins, call the next number.
 class QueueScreen extends StatefulWidget {
-  const QueueScreen({super.key});
+  const QueueScreen({super.key, this.clinics});
+
+  /// A medical center passes its doctors' clinics ({id, name}); otherwise the doctor's own clinics are used.
+  final List<Map<String, dynamic>>? clinics;
   @override
   State<QueueScreen> createState() => _QueueScreenState();
 }
@@ -45,7 +48,8 @@ class _QueueScreenState extends State<QueueScreen> {
 
   Future<void> _init() async {
     try {
-      final rows = await supa.from('clinics').select('id, name').eq('doctor_id', actingDoctorId()).eq('is_active', true).order('created_at');
+      final rows = widget.clinics ??
+          await supa.from('clinics').select('id, name').eq('doctor_id', actingDoctorId()).eq('is_active', true).order('created_at');
       setState(() {
         _clinics = List<Map<String, dynamic>>.from(rows);
         if (_clinics!.isNotEmpty) _clinic = _clinics!.first['id'] as String;

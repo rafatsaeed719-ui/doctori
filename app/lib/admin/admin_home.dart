@@ -12,6 +12,7 @@ import '../core/phone.dart';
 import '../core/supa.dart';
 import '../core/widgets.dart';
 import 'users_screens.dart';
+import '../center/center_screens.dart' show adminCreateCenter;
 
 /// Phase-1 admin tools inside the app: stats, doctor verification, platform settings.
 class AdminHome extends StatefulWidget {
@@ -159,6 +160,9 @@ class _Stats extends StatelessWidget {
                               context, MaterialPageRoute(builder: (_) => const AdminCreateUserScreen()));
                           if (added == true) reload();
                         }),
+                    Tile3D(icon: Icons.local_hospital_rounded, color: Tone.teal, label: tr('مركز طبي جديد', 'New medical center'),
+                        subtitle: tr('بحساب لصاحب المركز', 'With an owner login'),
+                        onTap: () => adminCreateCenter(context)),
                     Tile3D(icon: Icons.people_rounded, color: Tone.blue, label: tr('المستخدمين', 'Users'),
                         subtitle: tr('بحث وتعديل وحذف', 'Search, edit, delete'), onTap: () => goTo(1)),
                     Tile3D(icon: Icons.verified_user_rounded, color: Tone.orange, label: tr('توثيق الأطباء', 'Verify doctors'),
