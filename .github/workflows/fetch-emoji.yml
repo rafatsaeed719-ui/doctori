@@ -23,7 +23,7 @@ jobs:
           mkdir work && cd work
           git init -q -b tool-assets
           curl -fsSL -o NotoColorEmoji.ttf https://github.com/googlefonts/noto-emoji/raw/main/fonts/NotoColorEmoji.ttf
-          curl -fsSL -o LICENSE-OFL.txt https://github.com/googlefonts/noto-emoji/raw/main/fonts/LICENSE
+          curl -fsSL -o LICENSE.txt https://github.com/googlefonts/noto-emoji/raw/main/LICENSE || true
           ls -la
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
