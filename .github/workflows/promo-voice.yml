@@ -1,0 +1,49 @@
+name: Promo voice-over
+
+# Reads promo/narration.json aloud with the open Piper Arabic voice and commits the clips to promo/voice/.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "promo/narration.json"
+      - ".github/workflows/promo-voice.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get Piper and the Arabic voice
+        run: |
+          curl -fsSL -o piper.tgz https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz
+          tar xzf piper.tgz
+          v=https://huggingface.co/rhasspy/piper-voices/resolve/main/ar/ar_JO/kareem/medium
+          curl -fsSL -o kareem.onnx "$v/ar_JO-kareem-medium.onnx"
+          curl -fsSL -o kareem.onnx.json "$v/ar_JO-kareem-medium.onnx.json"
+          curl -fsSL -o MODEL_CARD "$v/MODEL_CARD" || true
+          head -c 1500 MODEL_CARD | tr '\n' ' ' | sed 's/^/::notice::/'; echo
+      - name: Speak
+        run: |
+          mkdir -p promo/voice
+          python3 - <<'PY'
+          import json, subprocess
+          for line in json.load(open('promo/narration.json')):
+              out = f"promo/voice/{line['id']}.wav"
+              subprocess.run(['./piper/piper', '-m', 'kareem.onnx', '--length_scale', '1.05',
+                              '--sentence_silence', '0.25', '--output_file', out],
+                             input=line['text'].encode(), check=True)
+              print(out)
+          PY
+          cp MODEL_CARD promo/voice/MODEL_CARD.txt || true
+          ls -la promo/voice
+      - name: Commit
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add promo/voice
+          git commit -m "Promo voice-over clips" || echo "nothing to commit"
+          git pull --rebase -q && git push
