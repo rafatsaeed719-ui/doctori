@@ -1,0 +1,31 @@
+name: Fetch emoji font (screenshots)
+
+# Puts the open-licence Noto Color Emoji font on the separate branch "tool-assets"
+# (used only for rendering app screenshots; kept off main so the repo stays small).
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/fetch-emoji.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  emoji:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and push
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir work && cd work
+          git init -q -b tool-assets
+          curl -fsSL -o NotoColorEmoji.ttf https://github.com/googlefonts/noto-emoji/raw/main/fonts/NotoColorEmoji.ttf
+          curl -fsSL -o LICENSE-OFL.txt https://github.com/googlefonts/noto-emoji/raw/main/fonts/LICENSE
+          ls -la
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add . && git commit -qm "Noto Color Emoji (OFL) for screenshots"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" tool-assets
