@@ -9,7 +9,8 @@ from scipy.io import wavfile
 from scipy.signal import lfilter
 
 SR = 44100
-sfx = json.load(open(sys.argv[1]))
+meta = json.load(open(sys.argv[1]))
+sfx = meta['sfx'] if isinstance(meta, dict) else meta
 out_path = sys.argv[2]
 DUR = float(sys.argv[3])
 N = int(SR * DUR)
@@ -20,8 +21,9 @@ rng = np.random.default_rng(7)
 BPM = 112
 BEAT = 60 / BPM
 BAR = BEAT * 4
-INTRO_END = 11.5   # problem scenes
-OUTRO = 57.0       # end card
+INTRO_END = meta.get('intro_end', 11.5) if isinstance(meta, dict) else 11.5   # problem scenes
+OUTRO = meta.get('outro', 57.0) if isinstance(meta, dict) else 57.0          # end card
+S1_END = meta.get('s1_end', 6.5) if isinstance(meta, dict) else 6.5
 
 
 def midi(n):
@@ -160,9 +162,9 @@ while t < INTRO_END - 0.2:
     bass(intro_chords[k % 2][0] - 12, t, BAR * 0.9, 0.18)
     k += 1
     t += BAR
-for b in range(int(6.5 / BEAT)):
+for b in range(int(S1_END / BEAT)):
     tick(b * BEAT, 0.12)                       # clock ticking in the waiting room
-for b in range(int(6.5 / BEAT), int(INTRO_END / BEAT)):
+for b in range(int(S1_END / BEAT), int(INTRO_END / BEAT)):
     kick(b * BEAT, 0.25 if b % 2 == 0 else 0.0)  # pulse while papers fly
 riser(INTRO_END - 1.4, 1.4)
 
