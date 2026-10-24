@@ -22,7 +22,7 @@ jobs:
         run: |
           mkdir work && cd work
           git init -q -b tool-assets
-          curl -fsSL -o NotoColorEmoji.ttf https://github.com/googlefonts/noto-emoji/raw/main/fonts/NotoColorEmoji.ttf
+          curl -fsSL -o NotoColorEmoji.ttf https://github.com/google/fonts/raw/main/ofl/notocoloremoji/NotoColorEmoji-Regular.ttf || curl -fsSL -o NotoColorEmoji.ttf https://github.com/googlefonts/noto-emoji/raw/main/fonts/Noto-COLRv1.ttf
           curl -fsSL -o LICENSE.txt https://github.com/googlefonts/noto-emoji/raw/main/LICENSE || true
           ls -la
           git config user.name "github-actions"
